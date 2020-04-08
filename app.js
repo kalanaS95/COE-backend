@@ -25,7 +25,7 @@ Orders = require('./models/Orders');
 mongose.connect('mongodb://localhost/backendDB', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true,  useFindAndModify: false });
 var db = mongose.connection;
 
-app.listen(3000);
+app.listen(process.env.PORT|| 3000);
 console.log("Backend Running on Port 3000");
 
 // ------ API Routes -------------
