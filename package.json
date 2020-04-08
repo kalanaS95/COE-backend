@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "backend for COE order request handler",
   "main": "app.js",
-  "scripts": {
-    "test": "mocha"
-  },
   "dependencies": {
     "body-parser": "*",
     "express": "*",
