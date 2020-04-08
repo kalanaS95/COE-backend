@@ -22,7 +22,8 @@ Orders = require('./models/Orders');
 
 
 //connect to mongoose --test
-mongose.connect('mongodb+srv://developers:123HelloWorld@cluster0-e0mig.azure.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true,  useFindAndModify: false });
+var mongoPath = 'mongodb+srv://developers:123HelloWorld@cluster0-e0mig.azure.mongodb.net/test?retryWrites=true&w=majority';
+mongose.connect(mongoPath, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true,  useFindAndModify: false });
 var db = mongose.connection;
 
 app.listen(process.env.PORT|| 3000);
@@ -34,6 +35,10 @@ console.log("Backend Running on Port 3000");
 //------------------------get request for landing page-------------------------------------------
 app.get('/',function(req,res){
     res.send('Please use /api/ to access the API');
+});
+
+app.get('/api/',function(req,res){
+    res.send(mongoPath);
 });
 //------------------------------------------------------------------------------------------------
 
