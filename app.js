@@ -37,9 +37,7 @@ app.get('/',function(req,res){
     res.send('Please use /api/ to access the API');
 });
 
-app.get('/api/',function(req,res){
-    res.send(mongoPath);
-});
+
 //------------------------------------------------------------------------------------------------
 
 
