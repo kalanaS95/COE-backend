@@ -22,7 +22,7 @@ Orders = require('./models/Orders');
 
 
 //connect to mongoose
-mongose.connect('mongodb://localhost/backendDB', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true,  useFindAndModify: false });
+mongose.connect('mongodb+srv://developers:123HelloWorld@cluster0-e0mig.azure.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true,  useFindAndModify: false });
 var db = mongose.connection;
 
 app.listen(process.env.PORT|| 3000);
