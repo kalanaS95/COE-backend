@@ -276,6 +276,7 @@ app.get('/api/login/:_netID',function(req,res){
 app.post('/api/uploadOrder',function(req,res){
     var Order_JSON = req.body;
     var files = req.files;
+    console.log(files);
     Orders.addOrder(JSON.parse(Order_JSON.JSON_body),files,function(err,order){
         if(err){
             res.json({"status":false, "data":err});
