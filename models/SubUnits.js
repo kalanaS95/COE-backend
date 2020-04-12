@@ -779,4 +779,12 @@ module.exports.loginUser = async function(UWID,callback){
         return;
     }
 }
+
+
+module.exports.getAll_subunits = async function(UnitID,callback){
+
+    SubUnit.find({UnitID_ref:UnitID},callback);   
+
+}
+
 // ------------------- End of API Functions ------------------------------------------------------------------

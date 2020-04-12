@@ -227,6 +227,19 @@ app.get('/api/subunits/:_subUnitID',function(req,res){
     });
 });
 
+//route to get information subunits under a given unit
+app.get('/api/subunitsinUnit/:_UnitID',function(req,res){
+    const Unit_ID = req.params._UnitID;
+
+    SubUnits.getAll_subunits(Unit_ID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
 
 //route to budget information given Budget number
 app.get('/api/getBudget/:_budgetID/',function(req,res){
