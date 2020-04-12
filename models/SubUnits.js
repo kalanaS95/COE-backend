@@ -14,6 +14,10 @@ var subUnitScheme = mongoose.Schema({
         type:String,
         required: true
     },
+    type:{
+        type: String,
+        required: true
+    },
     Submitters_IDs:[
         {
             type: [mongoose.Schema.Types.ObjectId],
@@ -50,6 +54,7 @@ async function validate_and_copy_passedJSON(JSON_Obj, callback) {
     //Empty template of a subunit JSON object
     var SubUnit_JSON_Obj = {
         "subUnitName": null,
+        "type": null,
         "Submitters_IDs": [],
         "UnitID_ref": null,
         "BudgetTable":[]
@@ -72,6 +77,11 @@ async function validate_and_copy_passedJSON(JSON_Obj, callback) {
         err_list.push("subUnitName is not String type")
     else
         SubUnit_JSON_Obj.subUnitName = JSON_Obj.subUnitName;
+    
+    if (typeof JSON_Obj.type != 'string')
+        err_list.push("type is not String type")
+    else
+        SubUnit_JSON_Obj.type = JSON_Obj.type;
         
     if (!Array.isArray(JSON_Obj.Submitters_IDs))
         err_list.push("Submitters_IDs is not array type")
