@@ -108,7 +108,7 @@ app.post('/api/units',function(req,res){
 });
 
 //route to add new users to Unit
-app.put('/api/units/:_id',function(req,res){
+app.post('/api/units/:_id',function(req,res){
     var Unit_users = req.body;
     var Unit_ID = req.params._id;
     Units.addUsers_to_Unit_byID(Unit_ID,Unit_users.userIDs,function(err,unit){
