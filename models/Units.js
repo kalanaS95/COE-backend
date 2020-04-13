@@ -276,4 +276,56 @@ module.exports.getUsers_with_information = async function(Unit_ID,callback){
 }
 
 
+//this will update the users access level given its ID and new accessLevel information
+module.exports.update_user_accessLevel = async function(userID,accessLevel,unitID,callback)
+{
+    const results_unit = await Unit.Unit_exsists_inCollection_byID(unitID);
+    if(!results_unit)
+    {
+        callback(`Unit doesnot exists`,null);
+        return;
+    }
 
+    try
+    {
+        await Unit.findById(unitID,function (err,UnitInfo){
+
+            var isModified = false;
+            if(err)
+            {
+                callback(`Internel Server Error Occured while updating user access level`,null);
+                return;
+            }else
+            {
+                var accessInfo = UnitInfo.userIDs;
+                for(var x=0;x<accessInfo.length;x++)
+                {
+                    if(accessInfo[x].ID == userID)
+                    {
+                        accessInfo[x].Admin = accessLevel;
+                        UnitInfo.markModified();
+                        UnitInfo.save();
+                        isModified = true;
+                    }
+                        
+                }
+
+                if(isModified)
+                {
+                    callback(null,'Successfully updated accessLevel');
+                    return;
+                }else
+                {
+                    callback('Could not find the user',null);
+                    return;
+                }
+            }
+
+        });
+    }catch
+    {
+        callback(`Internel Server Error Occured while updating user access level`,null);
+        return;
+    }
+
+}

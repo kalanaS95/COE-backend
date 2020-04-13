@@ -137,6 +137,22 @@ module.exports.searchUser_byObjectID = function(userID,callback){
     User.findById(userID,callback);
 }
 
+module.exports.updateUserInfo = async function(old_email,old_UWID_,data,callback)
+{
+    try
+    {
+        //updating user information
+        User.findOneAndUpdate({$and: [{email:old_email},{UWID:old_UWID_}]},data,callback);
+
+        
+    }catch
+    {
+        callback("matching email/UWID found in database",null);
+        return;
+    }
+    
+}
+
 
 
 
