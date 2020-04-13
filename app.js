@@ -74,12 +74,25 @@ app.post('/api/users',function(req,res){
 });
 
 //Route to update Users information in the Collection
-app.put('/api/users/:_email/:_id',function(req,res){
+app.post('/api/users/:_email/:_id',function(req,res){
     var User_JSON = req.body;
     var old_email= req.params._email;
     var old_UWID = req.params._id;
 
     Users.updateUserInfo(old_email,old_UWID,User_JSON,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
+//route to remove a user given users ID
+app.delete('/api/users/:_id',function(req,res){
+    var user_ID = req.params._id;
+
+    Users.removeUser(user_ID,function(err,user){
         if(err){
             res.json({"status":false, "data":err});
         }else{
@@ -133,7 +146,7 @@ app.get('/api/units/getUserInfomation/:_id',function(req,res){
 });
 
 //this will update the users access level given its ID and new accessLevel information
-app.put('/api/units/:_userID/:_accessLevel/:_unitID',function(req,res){
+app.post('/api/units/:_userID/:_accessLevel/:_unitID',function(req,res){
     var userID = req.params._userID;
     var accessLevel = req.params._accessLevel;
     var unitID = req.params._unitID;
@@ -182,7 +195,7 @@ app.post('/api/submitters/:_id',function(req,res){
 
 
 //route to remove submitters to the collection
-app.put('/api/submitters/:_id',function(req,res){
+app.post('/api/submitters/:_id',function(req,res){
     const Unit_JSON = req.body;
     const SubUnit_ID = req.params._id;
 
@@ -328,7 +341,7 @@ app.post('/api/uploadOrder',function(req,res){
 });
 
 //this API route upload files to a given order given Order ID
-app.put('/api/uploadFiles/:_orderID',function(req,res){
+app.post('/api/uploadFiles/:_orderID',function(req,res){
     const Order_ID = req.params._orderID;
     const files = req.files;
 
@@ -342,7 +355,7 @@ app.put('/api/uploadFiles/:_orderID',function(req,res){
 });
 
 //this API route will update the OrderInfo given OrderID
-app.put('/api/updateOrderInfo/:_orderID',function(req,res){
+app.post('/api/updateOrderInfo/:_orderID',function(req,res){
     const Order_ID = req.params._orderID;
     const Order_JSON = req.body;
     Orders.updateOrderInfo(Order_ID,Order_JSON,function(err,unit){
@@ -355,7 +368,7 @@ app.put('/api/updateOrderInfo/:_orderID',function(req,res){
 });
 
 //this API route will update the updateOrderStatus given OrderID
-app.put('/api/updateOrderStatus/:_orderID',function(req,res){
+app.post('/api/updateOrderStatus/:_orderID',function(req,res){
     const Order_ID = req.params._orderID;
     const Order_JSON = req.body;
     Orders.updateOrderStatus(Order_ID,Order_JSON,function(err,unit){
@@ -368,7 +381,7 @@ app.put('/api/updateOrderStatus/:_orderID',function(req,res){
 });
 
 //this API route will update the chatinfo given OrderID
-app.put('/api/updateChatInfo/:_orderID',function(req,res){
+app.post('/api/updateChatInfo/:_orderID',function(req,res){
     const Order_ID = req.params._orderID;
     const Order_JSON = req.body;
     Orders.updateChatInfo(Order_ID,Order_JSON,function(err,unit){
@@ -393,7 +406,7 @@ app.delete('/api/removeOrder/:_orderID',function(req,res){
 });
 
 //this API route will assign an order to financial staff given OrderID and userID
-app.put('/api/assignOrder/:_orderID/:_userID',function(req,res){
+app.post('/api/assignOrder/:_orderID/:_userID',function(req,res){
     const Order_ID = req.params._orderID;
     const userID = req.params._userID;
     Orders.assignOrder(Order_ID,userID,function(err,unit){
