@@ -160,6 +160,21 @@ app.post('/api/units/:_userID/:_accessLevel/:_unitID',function(req,res){
     });
 });
 
+
+//this will remove the users its ID and new accessLevel information from the unit
+app.delete('/api/units/removeUser/:_userID/:_unitID',function(req,res){
+    var userID = req.params._userID;
+    var unitID = req.params._unitID;
+
+    Units.remove_user_from_accessLevel(userID,unitID,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
 // ---- End of Unit Routes ------
 
 
@@ -195,7 +210,7 @@ app.post('/api/submitters/:_id',function(req,res){
 
 
 //route to remove submitters to the collection
-app.post('/api/submitters/:_id',function(req,res){
+app.post('/api/Removesubmitters/:_id',function(req,res){
     const Unit_JSON = req.body;
     const SubUnit_ID = req.params._id;
 

@@ -329,3 +329,59 @@ module.exports.update_user_accessLevel = async function(userID,accessLevel,unitI
     }
 
 }
+
+module.exports.remove_user_from_accessLevel = async function(userID,unitID,callback)
+{
+    const results_unit = await Unit.Unit_exsists_inCollection_byID(unitID);
+    if(!results_unit)
+    {
+        callback(`Unit doesnot exists`,null);
+        return;
+    }
+
+    try
+    {
+        await Unit.findById(unitID,function (err,UnitInfo){
+
+            var isModified = false;
+            if(err)
+            {
+                callback(`Internel Server Error Occured while removing the user`,null);
+                return;
+            }else
+            {
+                var accessInfo = UnitInfo.userIDs;
+                var temparry = [];
+                for(var x=0;x<accessInfo.length;x++)
+                {
+                    if(accessInfo[x].ID != userID)
+                    {
+                        temparry.push(accessInfo[x]);
+
+                    }else
+                        isModified = true;
+                        
+                }
+
+                if(isModified)
+                {
+                    UnitInfo.userIDs = temparry;
+                    UnitInfo.markModified();
+                    UnitInfo.save();
+                    callback(null,'Successfully removed user from the unit');
+                    return;
+                }else
+                {
+                    callback('Could not find the user',null);
+                    return;
+                }
+            }
+
+        });
+    }catch
+    {
+        callback(`Internel Server Error Occured while removing the user`,null);
+        return;
+    }
+
+}
