@@ -162,6 +162,20 @@ app.put('/api/units/:_userID/:_accessLevel/:_unitID',function(req,res){
 });
 
 
+//this will update unit name given new name, its ID 
+app.put('/api/units/:_unitID/:_newUnitName',function(req,res){
+    var unitID = req.params._unitID;
+    var newUnitName = req.params._newUnitName;
+
+    Units.Update_unit_name(unitID,newUnitName,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
 //this will remove the users its ID and new accessLevel information from the unit
 app.delete('/api/units/removeUser/:_userID/:_unitID',function(req,res){
     var userID = req.params._userID;

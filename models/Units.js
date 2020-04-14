@@ -385,3 +385,40 @@ module.exports.remove_user_from_accessLevel = async function(userID,unitID,callb
     }
 
 }
+
+module.exports.Update_unit_name = async function(UnitID, newUnitName, callback)
+{
+    const results_unit = await Unit.Unit_exsists_inCollection_byID(unitID);
+    if(!results_unit)
+    {
+        callback(`Unit doesnot exists`,null);
+        return;
+    }
+
+    try
+    {
+        await Unit.findById(UnitID,function (err,UnitInfo){
+
+            if(err)
+            {
+                callback(`Internel Server Error Occured while updating Unit Name`,null);
+                return;
+            }else
+            {
+                UnitInfo.unitName = newUnitName;
+                UnitInfo.markModified();
+                UnitInfo.save();
+                callback(null,'Successfully updated Unit Name');
+                return;
+
+            }
+
+        });
+    }catch
+    {
+        callback(`Internel Server Error Occured while updating Unit Name`,null);
+        return;
+    }
+
+
+}
