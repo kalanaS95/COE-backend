@@ -75,7 +75,7 @@ app.post('/api/users',function(req,res){
 });
 
 //Route to update Users information in the Collection
-app.post('/api/users/:_email/:_id',function(req,res){
+app.put('/api/users/:_email/:_id',function(req,res){
     var User_JSON = req.body;
     var old_email= req.params._email;
     var old_UWID = req.params._id;
