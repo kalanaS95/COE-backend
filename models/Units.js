@@ -388,7 +388,7 @@ module.exports.remove_user_from_accessLevel = async function(userID,unitID,callb
 
 module.exports.Update_unit_name = async function(UnitID, newUnitName, callback)
 {
-    const results_unit = await Unit.Unit_exsists_inCollection_byID(unitID);
+    const results_unit = await Unit.Unit_exsists_inCollection_byID(UnitID);
     if(!results_unit)
     {
         callback(`Unit doesnot exists`,null);
