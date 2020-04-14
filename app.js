@@ -147,7 +147,7 @@ app.get('/api/units/getUserInfomation/:_id',function(req,res){
 });
 
 //this will update the users access level given its ID and new accessLevel information
-app.post('/api/units/:_userID/:_accessLevel/:_unitID',function(req,res){
+app.put('/api/units/:_userID/:_accessLevel/:_unitID',function(req,res){
     var userID = req.params._userID;
     var accessLevel = req.params._accessLevel;
     var unitID = req.params._unitID;
