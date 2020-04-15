@@ -103,6 +103,20 @@ app.delete('/api/users/:_id',function(req,res){
 });
 
 
+//Route will return user information given users information
+app.get('/api/users/:_id',function(req,res){
+    var userID = req.params._id;
+
+    Users.searchUser_byObjectID(userID,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
+
 // ---- End of User Routes ------
 
 
