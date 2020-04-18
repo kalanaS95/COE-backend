@@ -8,7 +8,8 @@ var mongoose = require('mongoose');
 var AllBudgetsScheme = mongoose.Schema({
     UnitID_ref:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Unit'
+        ref: 'Unit',
+        required: true
     },
     BudgetNumber:{
         type: String,
@@ -33,11 +34,12 @@ var AllBudgets = module.exports = mongoose.model('AllBudgets', AllBudgetsScheme)
 // ------------------- Helper Functions --------------------------------------------------------
 
 //This validator function will validate Passed in JSON object contains correct data types
-function validate_and_copy_passedJSON(JSON_Obj, callback) {
+function validate_and_copy_passedJSON(JSON_Obj,UnitID_ref, callback) {
 
     var err_list = []; //this will keep all the error messages
     //Empty template of a user JSON object
     var Budget_JSON_Obj = {
+        "UnitID_ref":UnitID_ref,
         "BudgetNumber": null,
         "BudgetName": null,
         "StartDate": null,
@@ -77,11 +79,11 @@ function validate_and_copy_passedJSON(JSON_Obj, callback) {
 //return false in error or budget number already exists and return true if budget number does not exists
 module.exports.Budget_exists_under_Unit = async function (UnitID,Budget_Number,callback) 
 {
-    const Unit_results = await Units_ref.Unit_exsists_inCollection_byID(Subunit_JSON.UnitID_ref);
+    const Unit_results = await Units_ref.Unit_exsists_inCollection_byID(UnitID);
     //check if unit actually exists. if no there's no point of moving forward. 
     if(Unit_results == null)
     {
-        callback(`Unit ID:"${Subunit_JSON.UnitID_ref}" does not exsists`,null);
+        callback(`Unit ID:"${UnitID}" does not exsists`,null);
         return false;
     }
 
@@ -109,12 +111,12 @@ module.exports.Budget_exists_under_Unit = async function (UnitID,Budget_Number,c
 
 module.exports.add_to_All_Budgets = async function (UnitID,JSON_Obj,callback)
 {
-    const validated_results = validate_and_copy_passedJSON(JSON_Obj,callback);
+    const validated_results = validate_and_copy_passedJSON(JSON_Obj,UnitID, callback);
     if(validated_results == null)
         return;
 
     //check budget already exists in the database
-    const results_Budgets = await Budget_exists_under_Unit(UnitID, JSON_Obj.BudgetNumber, callback);
+    const results_Budgets = await AllBudgets.Budget_exists_under_Unit(UnitID, JSON_Obj.BudgetNumber, callback);
     if(results_Budgets == false)
         return;
 
