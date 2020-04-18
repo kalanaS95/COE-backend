@@ -19,6 +19,7 @@ Users = require('./models/Users');
 Units = require('./models/Units');
 SubUnits = require('./models/SubUnits');
 Orders = require('./models/Orders');
+AllBudgets = require('./models/AllBudgets');
 
 
 //connect to mongoose --test 123
@@ -472,3 +473,21 @@ app.get('/api/getAllOrders',function(req,res){
 
 
 // ---- End of Orders Routes ------
+
+// ---- AllBudgets Routes -------------------
+
+//this API route will add new Budgets to Units 
+app.post('/api/allBudgets/:_UnitID',function(req,res){
+    const UnitID = req.params._UnitID;
+    const AllBudget_JSON = req.body;
+    AllBudgets.add_to_All_Budgets(UnitID,AllBudget_JSON,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+
+// ---- End of AllBudgets Routes -------------
