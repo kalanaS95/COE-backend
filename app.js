@@ -15,7 +15,6 @@ app.use(bodyParser.json());
 app.use(fileUpload());
 
 //adding all the required Models to the App
-Departments = require('./models/Departments');
 Users = require('./models/Users');
 Units = require('./models/Units');
 SubUnits = require('./models/SubUnits');
@@ -41,22 +40,6 @@ app.get('/',function(req,res){
 
 //------------------------------------------------------------------------------------------------
 
-
-// ------------------------------------ Department Routes ------------------------------------
-
-//Route to add a new department to the Collection
-app.post('/api/departments',function(req,res){
-    var department_JSON = req.body;
-
-    Departments.addDepartment(department_JSON,function(err,department){
-        if(err){
-            res.json({"status":false, "data":err});
-        }else{
-            res.json({"status":true, "data":department});
-        }
-    });
-});
-// ------------------------------------ End of Department Routes ------------------------------
 
 
 // ---- User Routes -------
