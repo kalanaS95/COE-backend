@@ -489,5 +489,16 @@ app.post('/api/allBudgets/:_UnitID',function(req,res){
     });
 });
 
+app.get('/api/allBudgets/:_UnitID',function(req,res){
+    const UnitID = req.params._UnitID;
+    AllBudgets.get_all_budget_under_unit(UnitID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
 
 // ---- End of AllBudgets Routes -------------
