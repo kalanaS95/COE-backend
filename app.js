@@ -500,9 +500,11 @@ app.get('/api/allBudgets/:_UnitID',function(req,res){
     });
 });
 
-app.delete('/api/allBudgets/:_budgetID',function(req,res){
+app.delete('/api/allBudgets/:_UnitID/:_budgetID',function(req,res){
     const budgetID = req.params._budgetID;
-    AllBudgets.remove_budget_from_collection(budgetID,function(err,unit){
+    const unitID = req.params._UnitID;
+
+    AllBudgets.remove_budget_from_collection(budgetID,unitID,function(err,unit){
         if(err){
             res.json({"status":false, "data":err});
         }else{
