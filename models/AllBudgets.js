@@ -138,3 +138,18 @@ module.exports.get_all_budget_under_unit = async function(UnitID,callback)
     //now lets find all the buudgets under given unit and return to user
     AllBudgets.find({UnitID_ref:UnitID},callback);
 }
+
+module.exports.remove_budget_from_collection = function(budgetID,callback)
+{
+    const Unit_results = await Units_ref.Unit_exsists_inCollection_byID(UnitID);
+    //check if unit actually exists. if no there's no point of moving forward. 
+    if(Unit_results == null)
+    {
+        callback(`Unit ID:"${UnitID}" does not exsists`,null);
+        return false;
+    }
+
+    //now lets remove the budget
+    AllBudgets.findByIdAndDelete(budgetID,callback);
+
+}

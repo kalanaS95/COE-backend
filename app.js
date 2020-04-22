@@ -500,5 +500,17 @@ app.get('/api/allBudgets/:_UnitID',function(req,res){
     });
 });
 
+app.delete('/api/allBudgets/:_budgetID',function(req,res){
+    const budgetID = req.params._budgetID;
+    AllBudgets.remove_budget_from_collection(budgetID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+
 
 // ---- End of AllBudgets Routes -------------
