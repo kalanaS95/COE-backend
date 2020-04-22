@@ -514,5 +514,19 @@ app.delete('/api/allBudgets/:_UnitID/:_budgetID',function(req,res){
 });
 
 
+app.put('/api/allBudgets/:_budgetID',function(req,res){
+    const budgetID = req.params._budgetID;
+    const AllBudget_JSON = req.body;
+
+    AllBudgets.update_budget_information(budgetID,AllBudget_JSON,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+
 
 // ---- End of AllBudgets Routes -------------

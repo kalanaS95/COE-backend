@@ -153,3 +153,8 @@ module.exports.remove_budget_from_collection = async function(budgetID,UnitID,ca
     AllBudgets.findByIdAndDelete(budgetID,callback);
 
 }
+
+module.exports.update_budget_information = function(budgetID,JSON_Obj,callback)
+{
+    AllBudgets.findByIdAndUpdate(budgetID,JSON_Obj,callback);
+}
