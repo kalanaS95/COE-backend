@@ -528,5 +528,19 @@ app.put('/api/allBudgets/:_budgetID',function(req,res){
 });
 
 
+app.put('/api/allBudgets/uploadExcelFile/:_UnitID',function(req,res){
+    const UnitID = req.params._UnitID;
+    const files = req.files;
+
+    AllBudgets.add_new_budgets_from_excel_file(files,UnitID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+
 
 // ---- End of AllBudgets Routes -------------
