@@ -777,4 +777,21 @@ module.exports.getAll_subunits = async function(UnitID,callback){
 
 }
 
+
+module.exports.UpdateSubUnitName = async function(subUnitID,newName,callback)
+{
+    //first check if the subunit ID exists in the collection
+    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subUnitID);
+
+    if(fetched_SubUnit == null)
+    {
+        callback(`Sub unit ID ${subUnitID} doesnot exists`,null);
+        return;
+    }
+
+
+    SubUnit.findByIdAndUpdate(subUnitID,{"subUnitName":newName},callback);
+
+}
+
 // ------------------- End of API Functions ------------------------------------------------------------------

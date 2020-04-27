@@ -348,6 +348,20 @@ app.get('/api/login/:_netID',function(req,res){
     });
 });
 
+//route to change Subunit Name
+app.put('/api/subunits/:_subUnitID/:_newName',function(req,res){
+    var SubUnitID = req.params._subUnitID;
+    var newName = req.params._newName;
+
+    SubUnits.UpdateSubUnitName(SubUnitID,newName,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
 
 // ---- End of SubUnit Routes ------
 
