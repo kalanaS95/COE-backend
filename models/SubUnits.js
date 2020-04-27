@@ -821,7 +821,7 @@ module.exports.removeSubunit = async function(subUnitID,callback)
     for(var x=0;x<users_array.length;x++)
     {
         try{
-            Users_ref.findByIdAndDelete(users_array[x]);
+            await Users_ref.findByIdAndDelete(users_array[x]);
         }catch{
             callback(`Internal server error occured while removing user ID ${users_array[x]} please try again`,null);
             return;
@@ -830,7 +830,7 @@ module.exports.removeSubunit = async function(subUnitID,callback)
 
     //now lets remove the subunit from the database
     try{
-        SubUnit.findByIdAndRemove(subUnitID);
+        await SubUnit.findByIdAndRemove(subUnitID);
         callback(null,`Subunit successfully removed`);
     }catch{
         callback(`Internal server error occured while removing Subunit ID ${subUnitID} please try again`,null);
