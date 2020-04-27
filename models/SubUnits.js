@@ -794,4 +794,52 @@ module.exports.UpdateSubUnitName = async function(subUnitID,newName,callback)
 
 }
 
+module.exports.removeSubunit = async function(subUnitID,callback)
+{
+    //first check if the subunit ID exists in the collection
+    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subUnitID);
+
+    if(fetched_SubUnit == null)
+    {
+        callback(`Sub unit ID ${subUnitID} doesnot exists`,null);
+        return;
+    } 
+    
+    //lets find all the users and put it into an array, so we can remove them one by one and then remove the whole subunit
+    var users_array = [];
+
+    //adding all the submitters
+    for(var x =0;x<fetched_SubUnit.Submitters_IDs.length;x++)
+        users_array.push(fetched_SubUnit.Submitters_IDs[x]);
+
+    //adding all the aprrovers
+    for(var x=0;x<fetched_SubUnit.BudgetTable.length;x++)
+        for(var y=0;y<fetched_SubUnit.BudgetTable[x].approvers.length;y++)
+            users_array.push(fetched_SubUnit.BudgetTable[x].approvers[y].ID);
+    
+    //now lets remove these homies from the users table
+    for(var x=0;x<users_array.length;x++)
+    {
+        try{
+            Users_ref.findByIdAndDelete(users_array[x]);
+        }catch{
+            callback(`Internal server error occured while removing user ID ${users_array[x]} please try again`,null);
+            return;
+        }
+    }
+
+    //now lets remove the subunit from the database
+    try{
+        SubUnit.findByIdAndRemove(subUnitID);
+        callback(null,`Subunit successfully removed`);
+    }catch{
+        callback(`Internal server error occured while removing Subunit ID ${subUnitID} please try again`,null);
+    }
+
+        
+
+
+
+}
+
 // ------------------- End of API Functions ------------------------------------------------------------------

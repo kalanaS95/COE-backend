@@ -362,6 +362,19 @@ app.put('/api/subunits/:_subUnitID/:_newName',function(req,res){
     });
 });
 
+//route to delete a  Subunit
+app.delete('/api/subunits/:_subUnitID',function(req,res){
+    var SubUnitID = req.params._subUnitID;
+
+    SubUnits.removeSubunit(SubUnitID,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
 
 // ---- End of SubUnit Routes ------
 
