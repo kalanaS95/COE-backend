@@ -844,7 +844,7 @@ module.exports.removeSubunit = async function(subUnitID,callback)
 
 
 
-module.exports.findUser_information = async function(userID)
+module.exports.findUser_information = async function(userID,callback)
 {
     try{
         var userInfo = await Users_ref.findById(userID);
