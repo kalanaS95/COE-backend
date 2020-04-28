@@ -375,6 +375,17 @@ app.delete('/api/subunits/:_subUnitID',function(req,res){
     });
 });
 
+app.get('/api/getuserInformation/:_userID',function(req,res){
+    var User_ID = req.params._userID;
+
+    SubUnits.findUser_information(User_ID,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
 
 // ---- End of SubUnit Routes ------
 
