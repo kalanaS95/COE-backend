@@ -74,10 +74,9 @@ app.put('/api/users/:_email/:_id',function(req,res){
 });
 
 //Route to update Users information in the Collection given their ID
-app.put('/api/users/byID/:_id',function(req,res){
+app.put('/api/usersbyID/:_id',function(req,res){
     var User_JSON = req.body;
     var ID = req.params._id;
-
     Users.updateUserInfobyID(ID,User_JSON,function(err,user){
         if(err){
             res.json({"status":false, "data":err});

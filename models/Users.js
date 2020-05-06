@@ -153,9 +153,9 @@ module.exports.updateUserInfo = async function(old_email,old_UWID_,data,callback
     
 }
 
-module.exports.updateUserInfobyID = async function(userID,callback)
+module.exports.updateUserInfobyID = function(userID,data,callback)
 {
-    User.findByIdAndUpdate(userID,data,{new: true});
+    User.findByIdAndUpdate(userID,data,{new: true},callback);
     
 }
 
