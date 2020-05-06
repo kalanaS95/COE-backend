@@ -153,6 +153,12 @@ module.exports.updateUserInfo = async function(old_email,old_UWID_,data,callback
     
 }
 
+module.exports.updateUserInfobyID = async function(userID,callback)
+{
+    User.findByIdAndUpdate(userID,data);
+    
+}
+
 module.exports.removeUser = function(UserID,callback)
 {
     User.findByIdAndRemove(UserID,callback);
