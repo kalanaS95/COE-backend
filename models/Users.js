@@ -164,6 +164,12 @@ module.exports.removeUser = function(UserID,callback)
     User.findByIdAndRemove(UserID,callback);
 }
 
+module.exports.uploadImage = function(imageData,callback)
+{
+    console.log(imageData);
+    callback('TEST',null);
+}
+
 
 
 

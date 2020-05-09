@@ -25,7 +25,19 @@ var unitSchema = mongoose.Schema({
     subUnitIDs:{
         type:[mongoose.Schema.Types.ObjectId],
         ref:'SubUnit'
+    },
+    formVisibility:[
+        {
+            formName:{
+                type: String,
+                required: true
+            },
+            visible:{
+                type: Boolean,
+                required: true
+        }
     }
+    ]
 });
 
 var Unit = module.exports = mongoose.model('Unit', unitSchema);
@@ -40,7 +52,8 @@ function validate_and_copy_passedJSON(JSON_Obj, callback)
     var Unit_JSON_Obj = {
         "unitName":null,
         "userIDs":[],
-        "subUnitIDs":[]
+        "subUnitIDs":[],
+        "formVisibility":[]
     };
 
     //check passed in JSON fields have correct data types
@@ -204,7 +217,7 @@ module.exports.addUnit = async function(unit,callback)
         const validated_results = validate_and_copy_passedJSON(unit,callback);
         if(validated_results == null)
             return;
-
+        
         Unit.create(validated_results, callback);
     }
         
@@ -421,4 +434,58 @@ module.exports.Update_unit_name = async function(UnitID, newUnitName, callback)
     }
 
 
+}
+
+
+
+module.exports.AddFormVisibilityInformation = async function(UnitID, JSON_Obj, callback)
+{
+    //check if the Unit Exists
+    const results_unit = await Unit.Unit_exsists_inCollection_byID(UnitID);
+    if(!results_unit)
+    {
+        callback(`Unit doesnot exists`,null);
+        return;
+    }
+
+    const JSON_Info = JSON_Obj.formVisibility;
+    //if unit exists then we can add form visibility information to the system
+    try{
+
+        for(var x=0;x<JSON_Info.length;x++)
+            await Unit.findByIdAndUpdate(UnitID,{$push: {formVisibility:JSON_Info[x]}})
+        
+        callback(null,"Form Information Successfully added");
+
+    }catch{
+        callback("Internal server error occured while adding form visibility information",null);
+    }
+}
+
+module.exports.SetFormVisible_status = async function(UnitID, FormVisibility_Object_ID, visibleStatus, callback)
+{
+    //convert string to bool
+    if(visibleStatus == "false")
+        visibleStatus = false;
+    else
+        visibleStatus = true;
+
+    Unit.updateOne({'_id':UnitID, 'formVisibility._id':FormVisibility_Object_ID},{'$set':{'formVisibility.$.visible':visibleStatus}},callback);
+    
+}
+
+module.exports.getFormVisibility_Information = async function(UnitID,callback)
+{
+
+
+    const results_unit = await Unit.Unit_exsists_inCollection_byID(UnitID);
+    if(!results_unit)
+    {
+        callback(`Unit doesnot exists`,null);
+        return;
+    }else
+    {
+        callback(null,results_unit.formVisibility);
+    }
+    
 }

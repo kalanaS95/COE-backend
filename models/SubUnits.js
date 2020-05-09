@@ -334,6 +334,49 @@ async function check_budget_Number_exist_in_given_SubUnit(subUnitID, budgetID)
     }
 } 
 
+module.exports.getApprovers_and_approvalLogic_given_budgetNumber = async function(BudgetNumber, SubUnitID)
+{
+    var returnval = null;
+
+    try{
+        const res = await SubUnit.findById(SubUnitID);
+        for(var x=0;x<res.BudgetTable.length;x++)
+        {
+            if(res.BudgetTable[x].budgetNumber == BudgetNumber)
+            {
+                return {"approvers":res.BudgetTable[x].approvers, "approvalLogic":res.BudgetTable[x].approvalLogic};
+            }
+        }
+
+        //if nothing found
+        return null;
+
+    }catch{
+        return null;
+    }
+    
+   /* {
+        if(err)
+            returnval =  null;
+        else
+        {
+            for(var x=0;x<res.BudgetTable.length;x++)
+            {
+                if(res.BudgetTable[x].budgetNumber == BudgetNumber)
+                {
+                    returnval = {"approvers":res.BudgetTable[x].approvers, "approvalLogic":res.BudgetTable[x].approvalLogic}
+                    return;
+                }
+            }
+
+        }
+            
+    });*/
+
+
+
+}
+
 // ------------------- End of Helper Functions --------------------------------------------------------
 
 

@@ -113,6 +113,20 @@ app.get('/api/users/:_id',function(req,res){
     });
 });
 
+//this API route will upload files to the server
+app.post('/api/uploadProfilePic',function(req,res){
+
+    var files = req.files;
+    console.log(req.body);
+    Users.uploadImage(files,function(err,order){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":order});
+        }
+    });
+});
+
 
 // ---- End of User Routes ------
 
@@ -193,6 +207,49 @@ app.delete('/api/units/removeUser/:_userID/:_unitID',function(req,res){
     var unitID = req.params._unitID;
 
     Units.remove_user_from_accessLevel(userID,unitID,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
+
+//this will add form visibility information to the Unit
+app.put('/api/formVisibility/:_unitID',function(req,res){
+    var unitID = req.params._unitID;
+    var formInfo = req.body;
+    Units.AddFormVisibilityInformation(unitID,formInfo,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
+//this will change visibility of a form given forms ID and Unit ID
+app.put('/api/formVisibility/:_unitID/:_formID/:_isVisible',function(req,res){
+    var unitID = req.params._unitID;
+    var isVisible = req.params._isVisible;
+    var formID = req.params._formID;
+
+    Units.SetFormVisible_status(unitID,formID,isVisible,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
+//this will change visibility of a form given forms ID and Unit ID
+app.get('/api/formVisibility/:_unitID',function(req,res){
+    var unitID = req.params._unitID;
+
+
+    Units.getFormVisibility_Information(unitID,function(err,user){
         if(err){
             res.json({"status":false, "data":err});
         }else{
@@ -406,11 +463,12 @@ app.get('/api/getuserInformation/:_userID',function(req,res){
 // ---- Orders Routes -------
 
 //this API route will upload files to the server
-app.post('/api/uploadOrder',function(req,res){
+app.post('/api/uploadOrder/:_type/:_ID',function(req,res){
     var Order_JSON = req.body;
+    var Sub_OR_UnitID = req.params._ID;
+    var type = req.params._type;
     var files = req.files;
-    console.log(files);
-    Orders.addOrder(JSON.parse(Order_JSON.JSON_body),files,function(err,order){
+    Orders.addOrder(JSON.parse(Order_JSON.JSON_body),files,Sub_OR_UnitID,type,function(err,order){
         if(err){
             res.json({"status":false, "data":err});
         }else{

@@ -1,5 +1,9 @@
 //this will help to access modules in Users model
 var Users_ref = require("./Users");
+var approvalLogicReponses_Modal = require("./approval_info");
+var SubUnit_ref = require("./SubUnits");
+
+
 var mongoose = require('mongoose');
 var fs = require('fs');
 var rimraf = require("rimraf");
@@ -40,7 +44,14 @@ var orderScheme = mongoose.Schema({
     lastModified:{
         type:Date,
         default: Date.now
-    }
+    },
+    AribaReference:{
+        type:String,
+        default: null
+    },
+    ApprovalResponses:[approvalLogicReponses_Modal]
+
+    
 
 });
 
@@ -49,7 +60,7 @@ var Order = module.exports = mongoose.model('Order', orderScheme);
 // ------------------- Helper Functions --------------------------------------------------------------
 
 //This validator function will validate Passed in JSON object contains correct data types
-function validate_and_copy_passedJSON(JSON_Obj, callback) {
+function validate_and_copy_passedJSON(JSON_Obj,approvalResponse ,callback) {
 
     var err_list = []; //this will keep all the error messages
 
@@ -60,7 +71,10 @@ function validate_and_copy_passedJSON(JSON_Obj, callback) {
         "OrderInfo": null,
         "OrderStatus": null,
         "ChatInfo": null,
-        "assignedTo":null
+        "assignedTo":null,
+        "AribaReference": null,
+        "ApprovalResponses":approvalResponse
+
 
     };
 
@@ -116,6 +130,100 @@ module.exports.check_Order_exists_byID = async function(orderID){
     
 }
 
+async function construct_approvalInfo(OrderType, LineItems, type, Sub_OR_UnitID)
+{
+    var lowercase_type = type.toLowerCase();
+    var Approval_reponses = [];
+    
+    if(lowercase_type == "subunit")
+    {
+        for(var x=0;x<LineItems.length;x++)
+        {
+            
+            for(var y=0;y<LineItems[x].Budgets.length;y++)
+            {
+                //console.log("----------------------------------"+ LineItems[x].Budgets[y].Number + "----------------------------------");
+                var ret_val = await SubUnit_ref.getApprovers_and_approvalLogic_given_budgetNumber(LineItems[x].Budgets[y].Number,Sub_OR_UnitID);
+                var calculated_amount = calculate_spilt(LineItems[x].Amount,LineItems[x].Budgets[y].Split);
+                var result = construct_a_approval_logic_for_the_order_and_approver_response_part(ret_val.approvers,ret_val.approvalLogic,calculated_amount,OrderType);
+                Approval_reponses.push(construct_approval_Info_JSON_Object(result.approvalLogic,result.approverResponses,LineItems[x].Budgets[y].Number,LineItems[x].id))
+                
+                //console.log("----------------------------------\n");
+            }
+            
+        }
+
+        return Approval_reponses;
+    }else
+    {
+        //TODO" Approval response construction for Fiscal staff
+    }
+
+
+}
+
+function calculate_spilt(TotalAmount,Split)
+{
+    if(Split.indexOf('$')>-1) //means this is a currency based split
+    {
+        const amount = Split.replace('$','');
+        return (Number(TotalAmount) - Number(amount)).toFixed(2);
+    }else if(Split.indexOf('%')>-1) //means this is a percentage based split
+    {
+        const percentage = Split.replace('%','');
+        return (Number(TotalAmount) * (Number(percentage)/100)).toFixed(2);
+    }
+}
+
+function construct_a_approval_logic_for_the_order_and_approver_response_part(approvers, givenLogic, amount, OrderType)
+{
+    //this will keep the approval response part and new approval logic part
+    var result = [];
+    var new_approver_logic = "";
+    //keep track if the given logic contains only AND logics or only OR logics
+    var is_only_AND_logics = false;
+
+    //check if the given logical string only contains AND logics or OR logics
+    if(givenLogic.includes('&&'))
+        is_only_AND_logics = true;
+    else
+        is_only_AND_logics = false;
+
+
+    for(var x=0;x<approvers.length;x++)
+        //check if the approver is capable of approving this request if yes, then add him to the result array
+        if(approvers[x].allowedRequests.includes(OrderType.toLowerCase()) && Number(approvers[x].limit) >= Number(amount) )
+        {
+            result.push({"approverID_ref":approvers[x].ID, "response":null});
+            if(is_only_AND_logics)
+                new_approver_logic += approvers[x].ID + "&&";
+            else
+                new_approver_logic += approvers[x].ID + "||";
+  
+        }
+            
+        
+    //icheck if we have unwanted && or || operators appended to the end, if yes remove dem 
+    if(new_approver_logic[new_approver_logic.length - 1] == "&" || new_approver_logic[new_approver_logic.length - 1] == "|")
+        new_approver_logic = new_approver_logic.slice(0,- 2);
+    
+
+    //returning new approval logic and approver response part
+    return {"approvalLogic":new_approver_logic, "approverResponses":result};
+    
+}
+
+function construct_approval_Info_JSON_Object(approvalLogicString, approvalResponses, BudgetNumber, LineItemNumber)
+{
+    return {
+        "lineItemID":Number(LineItemNumber),
+        "approvalLogic": approvalLogicString,
+        "approverResponses":approvalResponses,
+        "finalResult":null,
+        "BudgetNumber":BudgetNumber
+    }
+}
+
 // ------------------- End of Helper Functions --------------------------------------------------------
 
 
@@ -124,10 +232,11 @@ module.exports.check_Order_exists_byID = async function(orderID){
 /*this function will add a new order to the Order collection also make a directory with the name of the 
 Order_ID and save all the uploaded files and files uploaded in the Chat section of the order
 */
-module.exports.addOrder = async function(Order_JSON,files,callback){
-
+module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,callback){
+    const parsed_OrderInfo = JSON.parse(Order_JSON.OrderInfo);
+    const approval_responses = await construct_approvalInfo(Order_JSON.OrderType,parsed_OrderInfo.LineItems,type,Sub_OR_UnitID);
     //first validate the passed in Order information
-    var Order_validated = validate_and_copy_passedJSON(Order_JSON,callback);
+   var Order_validated = validate_and_copy_passedJSON(Order_JSON,approval_responses,callback);
     if(Order_validated == null)
         return;
 
@@ -177,8 +286,10 @@ module.exports.addOrder = async function(Order_JSON,files,callback){
                 });
             }
         }
-
+        
         callback(null,order_pushed); 
+
+
 
     }catch(err)
     {
