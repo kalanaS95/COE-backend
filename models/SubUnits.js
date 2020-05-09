@@ -300,13 +300,13 @@ function find_A_BudgetInformation_Given_all_Budgets_in_SubUnit(BudgetID, AllBudg
 }
 
 //this function will check if budget Numbers exists in any of the subunits (realated to unit or related to another unit). 
-async function check_Budget_already_exists_in_any_subUnit(budgetNumbers)
+async function check_Budget_already_exists_in_any_subUnit(budgetNumbers,subUnitID)
 {
     //keep track of already found budgets
     var duplicate_budgets = [];
     for(var x=0;x<budgetNumbers.length;x++)
         try{
-            const res = await SubUnit.findOne({"BudgetTable.budgetNumber":budgetNumbers[x]});
+            const res = await SubUnit.findOne({"_id":subUnitID,"BudgetTable.budgetNumber":budgetNumbers[x]});
             
             if(res != null)
                 duplicate_budgets.push(budgetNumbers[x]);
@@ -596,7 +596,7 @@ module.exports.addBudget = async function(subunitID,budget_JSON,callback){
     for(var x=0;x<budget_JSON.budgets.length;x++)
         budgetNumbers.push(budget_JSON.budgets[x].budgetNumber);
 
-    const duplicate_budgets = await check_Budget_already_exists_in_any_subUnit(budgetNumbers);
+    const duplicate_budgets = await check_Budget_already_exists_in_any_subUnit(budgetNumbers,subunitID);
     if(duplicate_budgets == null)
     {
         callback('Internal Server Error occured while looking for duplicates',null);
