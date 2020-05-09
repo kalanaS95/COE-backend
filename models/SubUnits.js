@@ -633,7 +633,6 @@ module.exports.removeBudget = async function(subunitID,budgetNumber,callback){
         return;
     }
 
-
     const results = await check_budget_Number_exist_in_given_SubUnit(subunitID, budgetNumber);
 
     if(results== false)
@@ -647,7 +646,8 @@ module.exports.removeBudget = async function(subunitID,budgetNumber,callback){
     }
 
     //now lets remove this budget
-    SubUnit.findOneAndUpdate(subunitID, {$pull: {BudgetTable:{budgetNumber:budgetNumber}}},{new: true},callback);
+    SubUnit.findByIdAndUpdate(subunitID, {'$pull': {'BudgetTable':{'budgetNumber':budgetNumber}}},{new: true},callback);
+
 
 }
 
