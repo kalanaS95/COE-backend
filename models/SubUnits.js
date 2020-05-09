@@ -848,6 +848,7 @@ module.exports.removeSubunit = async function(subUnitID,callback)
         return;
     } 
     
+    /*
     //lets find all the users and put it into an array, so we can remove them one by one and then remove the whole subunit
     var users_array = [];
 
@@ -870,6 +871,7 @@ module.exports.removeSubunit = async function(subUnitID,callback)
             return;
         }
     }
+    */
 
     //now lets remove the subunit from the database
     try{
