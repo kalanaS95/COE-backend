@@ -541,7 +541,6 @@ module.exports.addApprover = async function(subunitID,budgetID,approver_JSON,cal
         return;
     }
 
-    console.log(approver_JSON.approvers.length);
     //check_UserID_exists_in_SpecificBudget_approvers_array
     for(var y=0;y<approver_JSON.approvers.length;y++)
         if(check_UserID_exists_in_SpecificBudget_approvers_array(approver_JSON.approvers[y].ID,fetched_Budget) == false) // this will help to eliminate duplicates
@@ -557,6 +556,29 @@ module.exports.addApprover = async function(subunitID,budgetID,approver_JSON,cal
 
     
 
+}
+
+module.exports.removeApprover = async function(subunitID,budgetID, approverID,callback)
+{
+     //first check if the subunit ID exists in the collection
+     const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+
+     if(fetched_SubUnit == null)
+     {
+         callback(`Sub unit ID ${subunitID} doesnot exists`,null);
+         return;
+     }
+     
+     const fetched_Budget = find_A_BudgetInformation_Given_all_Budgets_in_SubUnit(budgetID,fetched_SubUnit.BudgetTable);
+    
+     if(fetched_Budget == null)
+     {
+         callback(`Budget Number ${budgetID} cannot found under subunit ID ${subunitID}`,null);
+         return;
+     }
+
+     //if all the above checks are good, now we can remove this bugger from the approvers array
+     SubUnit.updateOne({"_id":subunitID, "BudgetTable.budgetNumber":budgetID}, {'$pull': {'BudgetTable.$.approvers':{'ID':approverID}}},{new: true},callback);
 }
 
 //this function will help to add a new bufget to the given subunit

@@ -323,6 +323,21 @@ app.post('/api/approvers/:_id/:_budgetID',function(req,res){
     });
 });
 
+//route to delete a  Subunit
+app.delete('/api/approvers/:_subUnitID/:_budgetID/:_approverID',function(req,res){
+    var SubUnitID = req.params._subUnitID;
+    var budgetID = req.params._budgetID;
+    var approverID = req.params._approverID;
+
+    SubUnits.removeApprover(SubUnitID,budgetID,approverID,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
 //route to add new budget to a subunit given its subunit ID
 app.post('/api/addNewBudgets/:_id',function(req,res){
     const budgets_JSON = req.body;
