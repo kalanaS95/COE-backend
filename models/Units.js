@@ -292,6 +292,12 @@ module.exports.getUsers_with_information = async function(Unit_ID,callback){
 //this will update the users access level given its ID and new accessLevel information
 module.exports.update_user_accessLevel = async function(userID,accessLevel,unitID,callback)
 {
+    var isAdmin = false;
+    if(accessLevel.toLowercase() == "false")
+        isAdmin = false;
+    else
+        isAdmin = true;
+
     const results_unit = await Unit.Unit_exsists_inCollection_byID(unitID);
     if(!results_unit)
     {
@@ -299,7 +305,14 @@ module.exports.update_user_accessLevel = async function(userID,accessLevel,unitI
         return;
     }
 
-    try
+    try{
+        await Unit.findByIdAndUpdate({_id:unitID},{$set: {'userIDs':{'Admin':isAdmin}}});
+        callback(null,'Successfully updated accessLevel');
+    }catch{
+        callback(`Internel Server Error Occured while removing the user`,null);
+    }
+
+ /*   try
     {
         await Unit.findById(unitID,function (err,UnitInfo){
 
@@ -340,7 +353,7 @@ module.exports.update_user_accessLevel = async function(userID,accessLevel,unitI
         callback(`Internel Server Error Occured while updating user access level`,null);
         return;
     }
-
+*/
 }
 
 module.exports.remove_user_from_accessLevel = async function(userID,unitID,callback)
@@ -352,49 +365,11 @@ module.exports.remove_user_from_accessLevel = async function(userID,unitID,callb
         return;
     }
 
-    try
-    {
-        await Unit.findById(unitID,function (err,UnitInfo){
-
-            var isModified = false;
-            if(err)
-            {
-                callback(`Internel Server Error Occured while removing the user`,null);
-                return;
-            }else
-            {
-                var accessInfo = UnitInfo.userIDs;
-                var temparry = [];
-                for(var x=0;x<accessInfo.length;x++)
-                {
-                    if(accessInfo[x].ID != userID)
-                    {
-                        temparry.push(accessInfo[x]);
-
-                    }else
-                        isModified = true;
-                        
-                }
-
-                if(isModified)
-                {
-                    UnitInfo.userIDs = temparry;
-                    UnitInfo.markModified();
-                    UnitInfo.save();
-                    callback(null,'Successfully removed user from the unit');
-                    return;
-                }else
-                {
-                    callback('Could not find the user',null);
-                    return;
-                }
-            }
-
-        });
-    }catch
-    {
+    try{
+        await Unit.findByIdAndUpdate({_id:unitID},{$pull: {'userIDs':{'ID':userID}}});
+        callback(null,'Successfully removed user from the unit');
+    }catch{
         callback(`Internel Server Error Occured while removing the user`,null);
-        return;
     }
 
 }
