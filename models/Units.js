@@ -293,7 +293,7 @@ module.exports.getUsers_with_information = async function(Unit_ID,callback){
 module.exports.update_user_accessLevel = async function(userID,accessLevel,unitID,callback)
 {
     var isAdmin = false;
-    if(accessLevel.toLowercase() == "false")
+    if(accessLevel == "false")
         isAdmin = false;
     else
         isAdmin = true;
@@ -306,54 +306,15 @@ module.exports.update_user_accessLevel = async function(userID,accessLevel,unitI
     }
 
     try{
-        await Unit.findByIdAndUpdate({_id:unitID, 'userIDs.ID':userID},{$set: {'userIDs':{'Admin':isAdmin}}});
+        //await Unit.findByIdAndUpdate({_id:unitID, 'userIDs.ID':userID},{$set: {'userIDs':{'Admin':isAdmin}}});
+        await Unit.updateOne({'_id':unitID, 'userIDs.ID':userID},{'$set':{'userIDs.$.Admin':isAdmin}});
         callback(null,'Successfully updated accessLevel');
-    }catch{
+    }catch(err){
+        console.log(err);
         callback(`Internel Server Error Occured while removing the user`,null);
     }
 
- /*   try
-    {
-        await Unit.findById(unitID,function (err,UnitInfo){
 
-            var isModified = false;
-            if(err)
-            {
-                callback(`Internel Server Error Occured while updating user access level`,null);
-                return;
-            }else
-            {
-                var accessInfo = UnitInfo.userIDs;
-                for(var x=0;x<accessInfo.length;x++)
-                {
-                    if(accessInfo[x].ID == userID)
-                    {
-                        accessInfo[x].Admin = accessLevel;
-                        UnitInfo.markModified();
-                        UnitInfo.save();
-                        isModified = true;
-                    }
-                        
-                }
-
-                if(isModified)
-                {
-                    callback(null,'Successfully updated accessLevel');
-                    return;
-                }else
-                {
-                    callback('Could not find the user',null);
-                    return;
-                }
-            }
-
-        });
-    }catch
-    {
-        callback(`Internel Server Error Occured while updating user access level`,null);
-        return;
-    }
-*/
 }
 
 module.exports.remove_user_from_accessLevel = async function(userID,unitID,callback)
@@ -446,7 +407,7 @@ module.exports.SetFormVisible_status = async function(UnitID, FormVisibility_Obj
         visibleStatus = true;
 
     Unit.updateOne({'_id':UnitID, 'formVisibility._id':FormVisibility_Object_ID},{'$set':{'formVisibility.$.visible':visibleStatus}},callback);
-    
+
 }
 
 module.exports.getFormVisibility_Information = async function(UnitID,callback)
