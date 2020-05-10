@@ -541,40 +541,21 @@ module.exports.addApprover = async function(subunitID,budgetID,approver_JSON,cal
         return;
     }
 
-
+    console.log(approver_JSON.approvers.length);
     //check_UserID_exists_in_SpecificBudget_approvers_array
     for(var y=0;y<approver_JSON.approvers.length;y++)
         if(check_UserID_exists_in_SpecificBudget_approvers_array(approver_JSON.approvers[y].ID,fetched_Budget) == false) // this will help to eliminate duplicates
         {
-            //if not found add approver to that budget
-            try{
-                await SubUnit.findById(subunitID, function (err, subUnitInfo){
-                    if(err)
-                    {
-                        callback(`Internel Server Error Occured while adding userID: ${approver_JSON.approvers[y].ID} to the approvers list`,null);
-                        return;
-                    }
-                    const selectedBudget = subUnitInfo.BudgetTable;
-                    for(var x=0;x<selectedBudget.length;x++)
-                    {
-                        if(selectedBudget[x].budgetNumber == budgetID)
-                        {
-                            selectedBudget[x].approvers.push(approver_JSON.approvers[y]);
-                            subUnitInfo.markModified('BudgetTable');
-                            subUnitInfo.save();
-                        }
-                    }
-
-                    
-                });
-                
-            }catch{
-                callback(`Internel Server Error Occured while adding userID: ${approver_JSON.approvers[y].ID} to the approvers list`,null);
+           try{
+                await SubUnit.updateOne({"_id":subunitID, "BudgetTable.budgetNumber":budgetID},{$push: {'BudgetTable.$.approvers':approver_JSON.approvers[y]}});
+            }catch(err){
+                callback(err,null);
                 return;
             }
         }
-
     callback(null,`Successfully added User IDs to the approver list of budget number ${budgetID}`);
+
+    
 
 }
 
