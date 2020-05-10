@@ -115,18 +115,35 @@ async function User_exsits_inColleciton_byName(User_name)
     }
 }
 
+async function user_exists_inCollection_byEmail_byUWID(email, UWID)
+{
+    try{
+        return (await User.findOne({"email":email, "UWID":UWID}));
+    }catch{
+        return null;
+    }
+}
+
 // ------------------- End of Helper Functions --------------------------------------------------------
 
 
 // ------------------- API Functions ------------------------------------------------------------------
 
 //Method to add a new user to the mongoDB 
-module.exports.addUser = function (user, callback) {
+module.exports.addUser = async function (user, callback) {
     
+
     //ToDO; Check if user already exists before adding
     const validated_results = validate_and_copy_passedJSON(user,callback);
     if(validated_results == null)
         return;
+
+    const results = await user_exists_inCollection_byEmail_byUWID(user.email, user.UWID)
+    if(results)
+    {
+        callback(result,null)
+        return;
+    }
 
     User.create(validated_results, callback);
 }
