@@ -34,6 +34,10 @@ var budgetScheme = mongoose.Schema({
             allowedRequests:{
                 type:[String],
                 required:true
+            },
+            PI:{
+                type:Boolean,
+                required:true
             }
         }
     ],
