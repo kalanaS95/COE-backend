@@ -306,7 +306,7 @@ module.exports.update_user_accessLevel = async function(userID,accessLevel,unitI
     }
 
     try{
-        await Unit.findByIdAndUpdate({_id:unitID},{$set: {'userIDs':{'Admin':isAdmin}}});
+        await Unit.findByIdAndUpdate({_id:unitID, 'userIDs.ID':userID},{$set: {'userIDs':{'Admin':isAdmin}}});
         callback(null,'Successfully updated accessLevel');
     }catch{
         callback(`Internel Server Error Occured while removing the user`,null);
