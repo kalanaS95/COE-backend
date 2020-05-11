@@ -308,13 +308,28 @@ app.post('/api/Removesubmitters/:_id',function(req,res){
 
 
 
-//route to add approvers to the collection
+//route to remove approvers to the collection
 app.post('/api/approvers/:_id/:_budgetID',function(req,res){
     const approver_JSON = req.body;
     const SubUnit_ID = req.params._id;
     const Budget_ID = req.params._budgetID
 
     SubUnits.addApprover(SubUnit_ID,Budget_ID,approver_JSON,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+//route to update approvers to the collection
+app.put('/api/approvers/:_subUnitID/:_budgetID/',function(req,res){
+    const approver_JSON = req.body;
+    const SubUnit_ID = req.params._subUnitID;
+    const Budget_ID = req.params._budgetID
+
+    SubUnits.updateApprover(SubUnit_ID,Budget_ID,approver_JSON,function(err,unit){
         if(err){
             res.json({"status":false, "data":err});
         }else{

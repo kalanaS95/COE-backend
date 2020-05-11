@@ -581,6 +581,37 @@ module.exports.removeApprover = async function(subunitID,budgetID, approverID,ca
      SubUnit.updateOne({"_id":subunitID, "BudgetTable.budgetNumber":budgetID}, {'$pull': {'BudgetTable.$.approvers':{'ID':approverID}}},{new: true},callback);
 }
 
+module.exports.updateApprover = async function(subunitID,budgetID, approver_JSON,callback)
+{
+     //first check if the subunit ID exists in the collection
+     const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+
+     if(fetched_SubUnit == null)
+     {
+         callback(`Sub unit ID ${subunitID} doesnot exists`,null);
+         return;
+     }
+     
+     const fetched_Budget = find_A_BudgetInformation_Given_all_Budgets_in_SubUnit(budgetID,fetched_SubUnit.BudgetTable);
+    
+     if(fetched_Budget == null)
+     {
+         callback(`Budget Number ${budgetID} cannot found under subunit ID ${subunitID}`,null);
+         return;
+     }
+
+     //if all the above checks are good, now we can remove this bugger from the approvers array
+     
+     SubUnit.updateOne({"_id":subunitID, "BudgetTable.budgetNumber":budgetID, "BudgetTable.approvers.ID":approver_JSON.ID}, 
+     {'$set': 
+     {'BudgetTable.$[budgetObject].approvers.$[approverobject].limit':approver_JSON.limit, 'BudgetTable.$[budgetObject].approvers.$[approverobject].allowedRequests':approver_JSON.allowedRequests, 'BudgetTable.$[budgetObject].approvers.$[approverobject].PI':approver_JSON.PI}},
+     {"arrayFilters":[{"budgetObject.budgetNumber":budgetID},{"approverobject.ID":approver_JSON.ID}]},callback);
+     
+
+
+}
+
+
 //this function will help to add a new bufget to the given subunit
 module.exports.addBudget = async function(subunitID,budget_JSON,callback){
 
