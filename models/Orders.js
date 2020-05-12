@@ -2,6 +2,7 @@
 var Users_ref = require("./Users");
 var approvalLogicReponses_Modal = require("./approval_info");
 var SubUnit_ref = require("./SubUnits");
+var Unit_ref = require("./Units");
 
 
 var mongoose = require('mongoose');
@@ -49,7 +50,14 @@ var orderScheme = mongoose.Schema({
         type:String,
         default: null
     },
-    ApprovalResponses:[approvalLogicReponses_Modal]
+    ApprovalResponses:[approvalLogicReponses_Modal],
+    AwaitingResponses: {
+        type:[mongoose.Types.ObjectId],
+        ref: 'User'
+    },
+    Unit_SubUnit_ref:{
+        type:String
+    }
 
     
 
@@ -73,8 +81,9 @@ function validate_and_copy_passedJSON(JSON_Obj,approvalResponse ,callback) {
         "ChatInfo": null,
         "assignedTo":null,
         "AribaReference": null,
-        "ApprovalResponses":approvalResponse
-
+        "ApprovalResponses":approvalResponse.Approval_reponses,
+        "AwaitingResponses":approvalResponse.awaiting_reposnses,
+        "Unit_SubUnit_ref": approvalResponse.Unit_Subunit_ID
 
     };
 
@@ -93,10 +102,15 @@ function validate_and_copy_passedJSON(JSON_Obj,approvalResponse ,callback) {
     else
         Order_JSON_Obj.OrderInfo = JSON_Obj.OrderInfo;
 
-    if (typeof JSON_Obj.OrderStatus != 'string')
+    /*if (typeof JSON_Obj.OrderStatus != 'string')
         err_list.push("OrderStatus is not String type")
     else
-        Order_JSON_Obj.OrderStatus = JSON_Obj.OrderStatus;
+        Order_JSON_Obj.OrderStatus = JSON_Obj.OrderStatus;*/
+    
+    if(approvalResponse.already_approved == true)
+        Order_JSON_Obj.OrderStatus = "Approved";
+    else
+        Order_JSON_Obj.OrderStatus = "Awaiting Approval";
         
     if (typeof JSON_Obj.ChatInfo != 'string')
         err_list.push("ChatInfo is not String type")
@@ -129,6 +143,22 @@ module.exports.check_Order_exists_byID = async function(orderID){
     }
     
 }
+function calculate_awaiting_reponses(Approval_reponses)
+{
+    var res = [];
+
+    for(var x=0;x<Approval_reponses.length;x++)
+        for(var y=0;y<Approval_reponses[x].approverResponses.length;y++)
+            if(Approval_reponses[x].approverResponses[y].response == null)
+                res.push(Approval_reponses[x].approverResponses[y].approverID_ref);
+
+
+    if(res.length <= 0)
+        return {"awaiting_reposnses":res, "already_approved":true};
+    else
+        return {"awaiting_reposnses":res, "already_approved":false} ;
+
+}
 
 async function construct_approvalInfo(OrderType, LineItems, type, Sub_OR_UnitID,submitterID)
 {
@@ -153,13 +183,59 @@ async function construct_approvalInfo(OrderType, LineItems, type, Sub_OR_UnitID,
             }
             
         }
-        console.log(Approval_reponses);
-        return Approval_reponses;
-    }else
+        const awaiting_reposnses = calculate_awaiting_reponses(Approval_reponses);
+        return {"Approval_reponses":Approval_reponses, "awaiting_reposnses":awaiting_reposnses.awaiting_reposnses, "already_approved":awaiting_reposnses.already_approved, "Unit_Subunit_ID":Sub_OR_UnitID};
+    }else if(lowercase_type == "unit")
     {
-        //TODO" Approval response construction for Fiscal staff
+        //this variable will keep all the budgets in a Unit
+        var allBudgets_ = [];
+        //for this first we need to find out all the budgets in the unit
+        const allSubunits = await Unit_ref.getAllSubUnitIDs(Sub_OR_UnitID);
+        
+        for(var x=0;x<allSubunits.length;x++)
+        {
+            var SubUnit_info = await SubUnit_ref.findById(allSubunits[x]);
+            if(SubUnit_info)
+                allBudgets_.push.apply(allBudgets_,SubUnit_info.BudgetTable);
+                
+        }
+
+        //process line items -- not my best wrok
+        for(var x=0;x<LineItems.length;x++)
+            for(var y=0;y<LineItems[x].Budgets.length;y++)
+            {
+                var ret_val = find_approvers_and_approval_logic(allBudgets_, LineItems[x].Budgets[y].Number);
+                for(var z = 0;z<ret_val.length;z++)
+                {
+                    var calculated_amount = calculate_spilt(LineItems[x].Amount,LineItems[x].Budgets[y].Split);
+                    var result = construct_a_approval_logic_for_the_order_and_approver_response_part(ret_val[z].approvers,ret_val[z].approvalLogic,calculated_amount,OrderType,submitterID);
+                    if(result.PI_request)
+                        Approval_reponses.push(construct_approval_Info_JSON_Object(result.approvalLogic,result.approverResponses,LineItems[x].Budgets[y].Number,LineItems[x].id,true))
+                    else
+                        Approval_reponses.push(construct_approval_Info_JSON_Object(result.approvalLogic,result.approverResponses,LineItems[x].Budgets[y].Number,LineItems[x].id,null))                        
+                }
+            }
+
+
+            //console.log(Approval_reponses);
+            const awaiting_reposnses = calculate_awaiting_reponses(Approval_reponses);
+            return {"Approval_reponses":Approval_reponses, "awaiting_reposnses":awaiting_reposnses.awaiting_reposnses, "already_approved":awaiting_reposnses.already_approved, "Unit_Subunit_ID":Sub_OR_UnitID};
     }
 
+
+}
+
+function find_approvers_and_approval_logic(allBudgets, BudgetNumber)
+{
+    var results = [];
+    for(var x=0;x<allBudgets.length;x++)
+    {
+        if(allBudgets[x].budgetNumber == BudgetNumber)
+            results.push({"approvers":allBudgets[x].approvers, "approvalLogic":allBudgets[x].approvalLogic})
+        
+    }
+
+    return results;
 
 }
 
@@ -206,7 +282,7 @@ function construct_a_approval_logic_for_the_order_and_approver_response_part(app
             
             //in this case we dont need any approval from other approvers. Just PI in the approval logic and his reponse should be yes
             result = [{"approverID_ref":approvers[x].ID, "response":true}]
-            new_approver_logic += approvers[x].ID;
+            new_approver_logic = approvers[x].ID;
             return {"approvalLogic":new_approver_logic, "approverResponses":result, "PI_request":true};
 
         }
@@ -254,8 +330,9 @@ function construct_approval_Info_JSON_Object(approvalLogicString, approvalRespon
 Order_ID and save all the uploaded files and files uploaded in the Chat section of the order
 */
 module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,callback){
-    //const parsed_OrderInfo = JSON.parse(Order_JSON.OrderInfo);
-    //const approval_responses = await construct_approvalInfo(Order_JSON.OrderType,parsed_OrderInfo.LineItems,type,Sub_OR_UnitID,Order_JSON.userID_ref);
+    const parsed_OrderInfo = JSON.parse(Order_JSON.OrderInfo);
+    const approval_responses = await construct_approvalInfo(Order_JSON.OrderType,parsed_OrderInfo.LineItems,type,Sub_OR_UnitID,Order_JSON.userID_ref);
+    console.log(approval_responses);
     //first validate the passed in Order information
    var Order_validated = validate_and_copy_passedJSON(Order_JSON,approval_responses,callback);
     if(Order_validated == null)
@@ -478,13 +555,12 @@ module.exports.getOrdersbyUserID = async function(UserID,callback){
 }
 
 
-//this function will return all the orders tied to a user
+//this function will return all the orders 
 module.exports.getAllOrders = async function(callback){
 
     //now lets look for all the orders under given userID
     try
     {
-
         callback(null, await Order.find({}));
 
     }catch{
@@ -493,6 +569,20 @@ module.exports.getAllOrders = async function(callback){
     }
 }
 
+
+//this function will return all the orders under an approver given it ID, SubUnit ID
+module.exports.findApprovers_orders = async function(approverID, subUnitID, callback)
+{
+    var orders_to_send = [];
+
+    //finding all the orders from the submitters
+    try{
+        const fetched_orders = await Order.find({"Unit_SubUnit_ref":subUnitID.toString(),"AwaitingResponses":approverID})
+    }catch{
+
+    }
+    //
+}
 
 
 // ------------------- End of API Functions ------------------------------------------------------------------

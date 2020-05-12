@@ -22,6 +22,7 @@ Orders = require('./models/Orders');
 AllBudgets = require('./models/AllBudgets');
 
 
+
 //connect to mongoose --test 123
 var mongoPath = 'mongodb+srv://developers:123HelloWorld@cluster0-e0mig.azure.mongodb.net/test?retryWrites=true&w=majority';
 mongose.connect(mongoPath, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true,  useFindAndModify: false });
@@ -625,6 +626,20 @@ app.get('/api/getAllOrders',function(req,res){
     });
 });
 
+
+//this function will return all the orders under an approver given it ID, SubUnit ID
+app.get('/api/findApproverOders/:_approverID/:_subUnitID',function(req,res){
+    const approverID = req.params._approverID;
+    const subUnitID = req.params._subUnitID;
+
+    Orders.findApprovers_orders(approverID,subUnitID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
 
 // ---- End of Orders Routes ------
 

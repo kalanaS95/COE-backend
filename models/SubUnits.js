@@ -355,26 +355,6 @@ module.exports.getApprovers_and_approvalLogic_given_budgetNumber = async functio
         return null;
     }
     
-   /* {
-        if(err)
-            returnval =  null;
-        else
-        {
-            for(var x=0;x<res.BudgetTable.length;x++)
-            {
-                if(res.BudgetTable[x].budgetNumber == BudgetNumber)
-                {
-                    returnval = {"approvers":res.BudgetTable[x].approvers, "approvalLogic":res.BudgetTable[x].approvalLogic}
-                    return;
-                }
-            }
-
-        }
-            
-    });*/
-
-
-
 }
 
 // ------------------- End of Helper Functions --------------------------------------------------------
@@ -782,7 +762,7 @@ module.exports.getSubmitterInfo = async function(subUnitID,callback){
 
 
 //this will login a user given its UWID
-module.exports.loginUser = async function(UWID,callback){
+/*module.exports.loginUser = async function(UWID,callback){
 
     try{
         var userInfo = await Users_ref.findOne({"UWID":UWID});
@@ -872,7 +852,7 @@ module.exports.loginUser = async function(UWID,callback){
         callback(`Login Error Occured while looking for UWID`,null);
         return;
     }
-}
+}*/
 
 
 module.exports.getAll_subunits = async function(UnitID,callback){
@@ -1013,4 +993,60 @@ module.exports.findUser_information = async function(userID,callback)
     }    
 }
 
+
 // ------------------- End of API Functions ------------------------------------------------------------------
+
+//----------------------------------- LOGIN FUNTIONS----------------------------------------------------------
+module.exports.loginUser = async function(UWID,callback){
+
+    //this variable will keep all the possible roles found in the database given user ID
+    var possible_roles = {
+        "userInfo": null,
+        "submitter":[],
+        "approver":[],
+        "fisacalStaff":[],
+        "fiscalAdmin":[]
+    }
+
+    var userInfo = await Users_ref.findOne({"UWID":UWID});
+    if(userInfo == null)
+    {
+        callback(`User with UW net ID: ${UWID} does not exist in the database`,null);
+        return;
+    }
+
+    possible_roles.userInfo = userInfo;
+
+    const user_database_ID = userInfo._id;
+
+    //lets crawl through units and see if we can find a match - to find fiscal admins and staff
+    try{
+        const res = await Units_ref.find({"userIDs.ID":user_database_ID});
+        for(var x=0;x<res.length;x++)
+            for(var y=0;y<res[x].userIDs.length;y++)
+            {
+               
+                if(res[x].userIDs[y].ID == user_database_ID.toString())
+                    if(res[x].userIDs[y].Admin)
+                        possible_roles.fiscalAdmin.push({"UnitName":res[x].unitName, "UnitID":res[x]._id});
+                    else
+                        possible_roles.fisacalStaff.push({"UnitName":res[x].unitName, "UnitID":res[x]._id});  
+            }
+
+    }catch{
+        callback(`Internal Server Error has occured`,null);
+    }
+
+    try{
+        const res = await SubUnit.find({"Submitters_IDs":user_database_ID});
+        //for(var x=0;x<res.length;x++)
+        console.log(res);
+            
+    }catch{
+        callback(`Internal Server Error has occured`,null);
+    }
+    
+    //console.log(possible_roles);
+    callback(null,possible_roles);
+}
+//----------------------------------- END OF LOGIN FUNCTIONS -------------------------------------------------

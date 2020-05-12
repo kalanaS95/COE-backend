@@ -202,6 +202,18 @@ module.exports.addSubunits_to_SubUnitIDs_array = async function (SubunitIDs,Unit
     return true;
 }
 
+module.exports.getAllSubUnitIDs = async function(unitID)
+{
+    try{
+        const result = await Unit.findById(unitID);
+        if(result)
+            return result.subUnitIDs;
+        else
+            return null;
+    }catch{
+        return null;
+    }
+}
 
 // ---------- End of Helper functions ---------------------------------
 
