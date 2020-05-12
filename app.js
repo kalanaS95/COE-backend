@@ -503,6 +503,18 @@ app.get('/api/getuserInformation/:_userID',function(req,res){
     });
 });
 
+app.get('/api/getBudgetsUnderSubUnit/:_subUnitID',function(req,res){
+    var subUnitID = req.params._subUnitID;
+
+    SubUnits.getBudgetsUnderSubUnit(subUnitID,function(err,user){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":user});
+        }
+    });
+});
+
 // ---- End of SubUnit Routes ------
 
 

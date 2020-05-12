@@ -1049,4 +1049,22 @@ module.exports.loginUser = async function(UWID,callback){
     //console.log(possible_roles);
     callback(null,possible_roles);
 }
+
+
+module.exports.getBudgetsUnderSubUnit = async function(subUnitID,callback)
+{
+    //first check if the subunit ID exists in the collection
+    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subUnitID);
+
+    if(fetched_SubUnit == null)
+    {
+        callback(`Sub unit ID ${subUnitID} doesnot exists`,null);
+        return;
+    }else
+    {
+        callback(null,fetched_SubUnit.BudgetTable)
+    }
+
+
+}
 //----------------------------------- END OF LOGIN FUNCTIONS -------------------------------------------------

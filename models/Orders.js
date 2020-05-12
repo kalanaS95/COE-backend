@@ -334,7 +334,7 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
     const approval_responses = await construct_approvalInfo(Order_JSON.OrderType,parsed_OrderInfo.LineItems,type,Sub_OR_UnitID,Order_JSON.userID_ref);
     console.log(approval_responses);
     //first validate the passed in Order information
-   var Order_validated = validate_and_copy_passedJSON(Order_JSON,approval_responses,callback);
+    var Order_validated = validate_and_copy_passedJSON(Order_JSON,approval_responses,callback);
     if(Order_validated == null)
         return;
 
