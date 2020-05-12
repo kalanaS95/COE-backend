@@ -685,6 +685,33 @@ module.exports.removeBudget = async function(subunitID,budgetNumber,callback){
 
 }
 
+module.exports.updateApprovalLogic = async function(subunitID, budgetNumber,approvalLogicString,callback)
+{
+    //first check if the subunit ID exists in the collection
+    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+
+    if(fetched_SubUnit == null)
+    {
+        callback(`Sub unit ID ${subunitID} doesnot exists`,null);
+        return;
+    }
+
+    const results = await check_budget_Number_exist_in_given_SubUnit(subunitID, budgetNumber);
+
+    if(results== false)
+    {
+        callback(`Budget Number ${budgetNumber} does not exist under Sub unit ID ${subunitID}`,null);
+        return;
+    }else if (results == null)
+    {
+        callback(`Error occured while looking for Budget Number`,null);
+        return;
+    }
+
+    //once we are here means budget and subunit exists, its time to update approval logic
+    SubUnit.updateOne({'_id':subunitID, 'BudgetTable.budgetNumber':budgetNumber},{'$set':{'BudgetTable.$.approvalLogic':approvalLogicString}},callback);
+}
+
 
 //this function will return all the budgets given subUnit ID
 module.exports.getSubUnitDetails = async function(subunitID,callback){

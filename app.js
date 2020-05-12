@@ -327,7 +327,7 @@ app.post('/api/approvers/:_id/:_budgetID',function(req,res){
 app.put('/api/approvers/:_subUnitID/:_budgetID/',function(req,res){
     const approver_JSON = req.body;
     const SubUnit_ID = req.params._subUnitID;
-    const Budget_ID = req.params._budgetID
+    const Budget_ID = req.params._budgetID;
 
     SubUnits.updateApprover(SubUnit_ID,Budget_ID,approver_JSON,function(err,unit){
         if(err){
@@ -349,6 +349,21 @@ app.delete('/api/approvers/:_subUnitID/:_budgetID/:_approverID',function(req,res
             res.json({"status":false, "data":err});
         }else{
             res.json({"status":true, "data":user});
+        }
+    });
+});
+
+//this route will update the approval logic
+app.put('/api/approvalLogic/:_subUnitID/:_budgetID/:_approvalLogicString',function(req,res){
+    const SubUnit_ID = req.params._subUnitID;
+    const Budget_ID = req.params._budgetID;
+    const approvalLogicString = req.params._approvalLogicString;
+
+    SubUnits.updateApprovalLogic(SubUnit_ID,Budget_ID,approvalLogicString,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
         }
     });
 });
