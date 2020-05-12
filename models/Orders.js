@@ -130,7 +130,7 @@ module.exports.check_Order_exists_byID = async function(orderID){
     
 }
 
-async function construct_approvalInfo(OrderType, LineItems, type, Sub_OR_UnitID)
+async function construct_approvalInfo(OrderType, LineItems, type, Sub_OR_UnitID,submitterID)
 {
     var lowercase_type = type.toLowerCase();
     var Approval_reponses = [];
@@ -142,17 +142,18 @@ async function construct_approvalInfo(OrderType, LineItems, type, Sub_OR_UnitID)
             
             for(var y=0;y<LineItems[x].Budgets.length;y++)
             {
-                //console.log("----------------------------------"+ LineItems[x].Budgets[y].Number + "----------------------------------");
                 var ret_val = await SubUnit_ref.getApprovers_and_approvalLogic_given_budgetNumber(LineItems[x].Budgets[y].Number,Sub_OR_UnitID);
                 var calculated_amount = calculate_spilt(LineItems[x].Amount,LineItems[x].Budgets[y].Split);
-                var result = construct_a_approval_logic_for_the_order_and_approver_response_part(ret_val.approvers,ret_val.approvalLogic,calculated_amount,OrderType);
-                Approval_reponses.push(construct_approval_Info_JSON_Object(result.approvalLogic,result.approverResponses,LineItems[x].Budgets[y].Number,LineItems[x].id))
+                var result = construct_a_approval_logic_for_the_order_and_approver_response_part(ret_val.approvers,ret_val.approvalLogic,calculated_amount,OrderType,submitterID);
+                if(result.PI_request)
+                    Approval_reponses.push(construct_approval_Info_JSON_Object(result.approvalLogic,result.approverResponses,LineItems[x].Budgets[y].Number,LineItems[x].id,true))
+                else
+                    Approval_reponses.push(construct_approval_Info_JSON_Object(result.approvalLogic,result.approverResponses,LineItems[x].Budgets[y].Number,LineItems[x].id,null))    
                 
-                //console.log("----------------------------------\n");
             }
             
         }
-
+        console.log(Approval_reponses);
         return Approval_reponses;
     }else
     {
@@ -175,8 +176,9 @@ function calculate_spilt(TotalAmount,Split)
     }
 }
 
-function construct_a_approval_logic_for_the_order_and_approver_response_part(approvers, givenLogic, amount, OrderType)
+function construct_a_approval_logic_for_the_order_and_approver_response_part(approvers, givenLogic, amount, OrderType,submitterID)
 {
+    //console.log(approvers);
     //this will keep the approval response part and new approval logic part
     var result = [];
     var new_approver_logic = "";
@@ -189,10 +191,27 @@ function construct_a_approval_logic_for_the_order_and_approver_response_part(app
     else
         is_only_AND_logics = false;
 
-
+        
     for(var x=0;x<approvers.length;x++)
+    {
+        var approvers_limit = 0;
+        if(approvers[x].limit == null) //this represents a case where approver's limit is  unlimited 
+            approvers_limit = Infinity;
+        else
+            approvers_limit = Number(approvers[x].limit);
+
+        //this represents a case, where the order was submitted by the PI of the subunit
+        if(approvers[x].PI && approvers[x].ID == submitterID)
+        {
+            
+            //in this case we dont need any approval from other approvers. Just PI in the approval logic and his reponse should be yes
+            result = [{"approverID_ref":approvers[x].ID, "response":true}]
+            new_approver_logic += approvers[x].ID;
+            return {"approvalLogic":new_approver_logic, "approverResponses":result, "PI_request":true};
+
+        }
         //check if the approver is capable of approving this request if yes, then add him to the result array
-        if(approvers[x].allowedRequests.includes(OrderType.toLowerCase()) && Number(approvers[x].limit) >= Number(amount) )
+        else if(approvers[x].allowedRequests.includes(OrderType) && approvers_limit >= Number(amount) && approvers[x].ID != submitterID)
         {
             result.push({"approverID_ref":approvers[x].ID, "response":null});
             if(is_only_AND_logics)
@@ -201,6 +220,8 @@ function construct_a_approval_logic_for_the_order_and_approver_response_part(app
                 new_approver_logic += approvers[x].ID + "||";
   
         }
+    }
+
             
         
     //icheck if we have unwanted && or || operators appended to the end, if yes remove dem 
@@ -209,17 +230,17 @@ function construct_a_approval_logic_for_the_order_and_approver_response_part(app
     
 
     //returning new approval logic and approver response part
-    return {"approvalLogic":new_approver_logic, "approverResponses":result};
+    return {"approvalLogic":new_approver_logic, "approverResponses":result, "PI_request":false};
     
 }
 
-function construct_approval_Info_JSON_Object(approvalLogicString, approvalResponses, BudgetNumber, LineItemNumber)
+function construct_approval_Info_JSON_Object(approvalLogicString, approvalResponses, BudgetNumber, LineItemNumber, finalResult)
 {
     return {
         "lineItemID":Number(LineItemNumber),
         "approvalLogic": approvalLogicString,
         "approverResponses":approvalResponses,
-        "finalResult":null,
+        "finalResult":finalResult,
         "BudgetNumber":BudgetNumber
     }
 }
@@ -233,8 +254,8 @@ function construct_approval_Info_JSON_Object(approvalLogicString, approvalRespon
 Order_ID and save all the uploaded files and files uploaded in the Chat section of the order
 */
 module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,callback){
-    const parsed_OrderInfo = JSON.parse(Order_JSON.OrderInfo);
-    const approval_responses = await construct_approvalInfo(Order_JSON.OrderType,parsed_OrderInfo.LineItems,type,Sub_OR_UnitID);
+    //const parsed_OrderInfo = JSON.parse(Order_JSON.OrderInfo);
+    //const approval_responses = await construct_approvalInfo(Order_JSON.OrderType,parsed_OrderInfo.LineItems,type,Sub_OR_UnitID,Order_JSON.userID_ref);
     //first validate the passed in Order information
    var Order_validated = validate_and_copy_passedJSON(Order_JSON,approval_responses,callback);
     if(Order_validated == null)
@@ -296,7 +317,7 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
         console.log(err);
         callback(`Internel Server Error Occured while pushing information to Collection`,null);
     }
-
+    //callback(`Internel Server Error Occured while pushing information to Collection`,null);
 }
 
 //this function will upload file/attachments to the order given order ID
