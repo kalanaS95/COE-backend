@@ -1069,7 +1069,7 @@ module.exports.loginUser = async function(UWID,callback){
         var jsonObject = temp.map(JSON.stringify); 
         var uniqueSet = new Set(jsonObject); 
         var uniqueArray = Array.from(uniqueSet).map(JSON.parse); 
-        possible_roles.approver.push(uniqueArray);
+        possible_roles.approver.push.apply(uniqueArray);
     }catch{
         callback(`Internal Server Error has occured`,null);
         return;
