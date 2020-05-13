@@ -1035,18 +1035,47 @@ module.exports.loginUser = async function(UWID,callback){
 
     }catch{
         callback(`Internal Server Error has occured`,null);
+        return;
     }
 
+    //looking for submitters now
     try{
         const res = await SubUnit.find({"Submitters_IDs":user_database_ID});
-        //for(var x=0;x<res.length;x++)
-        console.log(res);
+        
+        for(var x=0;x<res.length;x++)
+            for(var y=0;y<res[x].Submitters_IDs.length;y++)
+            {
+                if(res[x].Submitters_IDs[y].toString() == user_database_ID.toString())
+                    possible_roles.submitter.push({"SubunitName":res[x].subUnitName, "SubunitID":res[x]._id});
+            }
             
+    }catch(err){
+        //console.log(err);
+        callback(`Internal Server Error has occured`,null);
+        return;
+    }
+
+    //looking for approvers now
+    try{
+        var temp = []
+        const res = await SubUnit.find({"BudgetTable.approvers.ID":user_database_ID.toString()});//.select('BudgetTable subUnitName');
+        for(var x=0;x<res.length;x++)
+            for(var y=0;y<res[x].BudgetTable.length;y++)
+                for(var z=0;z<res[x].BudgetTable[y].approvers.length;z++)
+                    if(res[x].BudgetTable[y].approvers[z].ID.toString() == user_database_ID.toString())
+                        temp.push({"SubunitName":res[x].subUnitName, "SubunitID":res[x]._id});
+            
+        //removing any duplicates this to deal with case, where approver is mentioned in two budgets in the same subunit. remove duplicate beacause we just need to know where user resides
+        var jsonObject = temp.map(JSON.stringify); 
+        var uniqueSet = new Set(jsonObject); 
+        var uniqueArray = Array.from(uniqueSet).map(JSON.parse); 
+        possible_roles.approver.push(uniqueArray);
     }catch{
         callback(`Internal Server Error has occured`,null);
+        return;
     }
     
-    //console.log(possible_roles);
+    
     callback(null,possible_roles);
 }
 
