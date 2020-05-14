@@ -653,7 +653,7 @@ app.get('/api/getAllOrders',function(req,res){
 
 
 //this function will return all the orders under an approver given it ID, SubUnit ID
-app.get('/api/findApproverOders/:_approverID/:_subUnitID',function(req,res){
+app.get('/api/findApproverOrders/:_approverID/:_subUnitID',function(req,res){
     const approverID = req.params._approverID;
     const subUnitID = req.params._subUnitID;
 
