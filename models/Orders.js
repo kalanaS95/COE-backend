@@ -530,6 +530,18 @@ module.exports.assignOrder = async function(orderID,UserID,callback){
 
 }
 
+module.exports.getAssignedOrders = async function(userID,callback)
+{
+    //check userID exists
+    if(await Users_ref.validate_UserID(userID) == null)
+    {
+        callback("Invalid User ID",null);
+        return;
+    }
+
+    Order.find({"assignedTo":userID},callback);
+}
+
 
 //this function will return all the orders tied to a user
 module.exports.getOrdersbyUserID = async function(UserID,callback){

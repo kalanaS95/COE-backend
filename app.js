@@ -614,6 +614,19 @@ app.post('/api/assignOrder/:_orderID/:_userID',function(req,res){
 });
 
 //this API route will return all the orders tied to a userID
+app.get('/api/getAssignedOrders/:_userID',function(req,res){
+    const userID = req.params._userID;
+
+    Orders.getAssignedOrders(userID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+//this API route will return all the orders tied to a userID
 app.get('/api/getOrders/:_userID',function(req,res){
     const userID = req.params._userID;
     Orders.getOrdersbyUserID(userID,function(err,unit){
