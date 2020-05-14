@@ -585,15 +585,66 @@ module.exports.getAllOrders = async function(callback){
 //this function will return all the orders under an approver given it ID, SubUnit ID
 module.exports.findApprovers_orders = async function(approverID, subUnitID, callback)
 {
-    var orders_to_send = [];
-
     //finding all the orders from the submitters
     try{
-        const fetched_orders = await Order.find({"Unit_SubUnit_ref":subUnitID.toString(),"AwaitingResponses":approverID})
+        const fetched_orders = await Order.find({"Unit_SubUnit_ref":subUnitID.toString(),"AwaitingResponses":approverID});
+        callback(null,fetched_orders);
+        return;
     }catch{
-
+        callback(`Internal Error occured while fetching Order Information`,null);
+        return;
     }
-    //
+
+}
+
+
+//this function will return order information to Fiscal staff and admin, given their Unit_ID, pretty much send all the orders under that unit (including all the orders from all the subunits under that unit)
+module.exports.findOrdersForFiscal = async function (Unit_ID,callback)
+{
+    //this will keep track of all the oreders
+    var ordersToSend = {
+        "Unit":null,
+        "SubUnits":[]
+    }
+    //check unit exisists in the database
+    const unit_fetched = await Unit_ref.Unit_exsists_inCollection_byID(Unit_ID);
+
+    if(unit_fetched == null)
+    {
+        callback(`Invalid Unit ID ${Unit_ID}`,null);
+        return;
+    }
+
+    //now lets get all the subunits under this unit
+    const subUnits = unit_fetched.subUnitIDs;
+
+    
+
+    //now lets find orders from Unit level
+    try{
+        const orders_from_unit = await Order.find({"Unit_SubUnit_ref":Unit_ID.toString()});
+        ordersToSend.Unit = orders_from_unit;
+    }catch
+    {
+        callback(`Internal Error occured while fetching Order Information`,null);
+        return;
+    }
+
+    //now lets find order from all the subunits under the given unit
+    try{
+        for(var x=0;x<subUnits.length;x++)
+        {
+            var orders_from_subunit = await Order.find({"Unit_SubUnit_ref":subUnits[x].toString()});
+            ordersToSend.SubUnits.push({"subUnitID":subUnits[x].toString(), "orders":orders_from_subunit});
+        }
+    }catch{
+        callback(`Internal Error occured while fetching Order Information`,null);
+        return;
+    }
+
+    callback(null,ordersToSend);
+
+
 }
 
 

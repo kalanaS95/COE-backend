@@ -666,6 +666,20 @@ app.get('/api/findApproverOders/:_approverID/:_subUnitID',function(req,res){
     });
 });
 
+
+//this function will return all the orders under an unit - for fiscal staff use
+app.get('/api/findOrdersForFiscal/:_UnitID',function(req,res){
+    const UnitID = req.params._UnitID;
+
+    Orders.findOrdersForFiscal(UnitID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
 // ---- End of Orders Routes ------
 
 // ---- AllBudgets Routes -------------------
