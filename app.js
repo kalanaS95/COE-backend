@@ -21,7 +21,7 @@ SubUnits = require('./models/SubUnits');
 Orders = require('./models/Orders');
 AllBudgets = require('./models/AllBudgets');
 
-
+var fs = require('fs');
 
 //connect to mongoose --test 123
 var mongoPath = 'mongodb+srv://developers:123HelloWorld@cluster0-e0mig.azure.mongodb.net/test?retryWrites=true&w=majority';
@@ -694,6 +694,21 @@ app.put('/api/ApproverResponse',function(req,res){
     });
 });
 
+
+//this function will return names of files that the user has attached with the order
+app.get('/api/getfilesAttached/:_OrderID',function(req,res){
+    const OrderID = req.params._OrderID;
+
+    Orders.getfilesAttached(OrderID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+
 // ---- End of Orders Routes ------
 
 // ---- AllBudgets Routes -------------------
@@ -767,3 +782,48 @@ app.put('/api/allBudgets/uploadExcelFile/:_UnitID',function(req,res){
 
 
 // ---- End of AllBudgets Routes -------------
+
+
+
+//----------------- FILE DOWNLOAD ROUTES --------------------------------------------------------
+app.get('/api/downloadAttachment/:_orderID/:_fileName', function(req,res){
+    const orderID = req.params._orderID;
+    const fileName = req.params._fileName;
+
+
+    //check if file actually exists
+    const DIR_path = __dirname+"/orders/"+orderID;
+    var isFileFound = false;
+    fs.readdir(DIR_path, function (err, files) {
+        //handling error
+        if (err) {
+            console.log(err);
+            res.json({"status":false, "data":'Internal Server Error Occured - Invalid OrderID'});
+            return;
+        } 
+
+        //listing all files using forEach
+        files.forEach(function (file) {
+            
+            //console.log(typeof file);
+            if(fileName == file)
+                isFileFound = true;
+             
+        });
+        
+        if(!isFileFound)
+        {
+            res.json({"status":false, "data":'File not Found'});
+            return;
+        }else
+        {
+            res.download(DIR_path+'/'+fileName);
+            return;
+        }
+            
+
+
+    });
+
+});
+//----------------- END OF FILE DOWNLOAD ROUTES -------------------------------------------------

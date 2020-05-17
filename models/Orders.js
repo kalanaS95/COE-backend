@@ -32,7 +32,7 @@ var orderScheme = mongoose.Schema({
     },
     ChatInfo:{
         type:String,
-        required:true
+        default: ""
     },
     assignedTo:{
         type:mongoose.Types.ObjectId,
@@ -111,11 +111,12 @@ function validate_and_copy_passedJSON(JSON_Obj,approvalResponse ,callback) {
         Order_JSON_Obj.OrderStatus = "Approved";
     else
         Order_JSON_Obj.OrderStatus = "Awaiting Approval";
-        
+         
     if (typeof JSON_Obj.ChatInfo != 'string')
         err_list.push("ChatInfo is not String type")
     else
         Order_JSON_Obj.ChatInfo = JSON_Obj.ChatInfo;
+
         
     if (typeof JSON_Obj.assignedTo != 'string' && JSON_Obj.assignedTo != null)
         err_list.push("assignedTo is not String type")
@@ -779,6 +780,44 @@ module.exports.ApproverResponse = async function(orderID, approverID, budgetNumb
     }
 
 }
+
+
+//this function will return names of files that the user has attached with the order
+module.exports.getfilesAttached = async function(orderID, callback)
+{
+    //first lets check if the order exists
+    const results = await Order.check_Order_exists_byID(orderID);
+
+    if(results == null)
+    {
+        callback(`Order ID ${orderID} does not exists`,null);
+        return;
+    }
+
+    //lets check the file directory and see if we have any attached files
+    const DIR_path = __dirname+"/../orders/"+orderID;
+
+    fs.readdir(DIR_path, function (err, files) {
+        //handling error
+        if (err) {
+            callback([],null);
+            return;
+        } 
+
+        var fileNamesToSend = [];
+        //listing all files using forEach
+        files.forEach(function (file) {
+            fileNamesToSend.push(file);
+             
+        });
+
+        callback(null,fileNamesToSend);
+
+    });
+}
+
+
+
 // ------------------- End of API Functions ------------------------------------------------------------------
 
 
