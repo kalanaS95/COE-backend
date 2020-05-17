@@ -380,7 +380,7 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
                 await files[file_names[x]].mv(DIR_path+"/"+files[file_names[x]].name,(err)=>{
                     if(err)
                     {
-                        console.log("error occured"+ file_names[x].name);
+                        console.log("error occured"+ [file_names[x]].name.toString());
                         callback(`Error occured while moving files`,null);
                         return;
                     }
