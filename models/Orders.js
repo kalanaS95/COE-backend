@@ -374,6 +374,8 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
                     return;       
                 });
             //now lets move all the uploaded files to the newly created directory
+            console.log("files Received:"+file_names.length);
+
             for(var x=0;x<file_names.length;x++)
             {
                 console.log("Move Path:");
