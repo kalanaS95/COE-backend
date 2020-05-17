@@ -368,41 +368,47 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
             //lets make a directory under orders with order ID
             await fs.mkdir(DIR_path, (err)=>{
                 if(err)
+                {
                     callback(`Internel Server Error Occured while uploading documents`,null);
                     //also remove the created record in order collection
                     Order.remove({_id:order_pushed._id});
-                    return;       
-                });
-            //now lets move all the uploaded files to the newly created directory
-            console.log("files Received:"+file_names.length);
-
-            for(var x=0;x<file_names.length;x++)
-            {
-                //console.log("Move Path:");
-                //console.log(files[file_names[x]]);
-
-                fs.writeFile(DIR_path+"/"+files[file_names[x]].name,files[file_names[x]].data,function(err)
+                    return;   
+                }else
                 {
-                    if(err)
-                    {
-                        console.log("\n\n\n=================error occured================");
-                        console.log(err);
-                        console.log("===================================================\n\n\n");
-                    }
-                        
-                })
+                    //now lets move all the uploaded files to the newly created directory
+                    console.log("files Received:"+file_names.length);
 
-                /*await files[file_names[x]].mv(DIR_path+"/"+files[file_names[x]].name,(err)=>{
-                    if(err)
+                    for(var x=0;x<file_names.length;x++)
                     {
-                        console.log("\n\n\n=================error occured================");
-                        console.log(err);
-                        console.log("=================error occured================\n\n\n");
-                        //callback(`Error occured while moving files`,null);
-                        //return;
+                        //console.log("Move Path:");
+                        //console.log(files[file_names[x]]);
+
+                        fs.writeFile(DIR_path+"/"+files[file_names[x]].name,files[file_names[x]].data,function(err)
+                        {
+                            if(err)
+                            {
+                                console.log("\n\n\n=================error occured================");
+                                console.log(err);
+                                console.log("===================================================\n\n\n");
+                            }
+                                
+                        })
+
+                        /*await files[file_names[x]].mv(DIR_path+"/"+files[file_names[x]].name,(err)=>{
+                            if(err)
+                            {
+                                console.log("\n\n\n=================error occured================");
+                                console.log(err);
+                                console.log("=================error occured================\n\n\n");
+                                //callback(`Error occured while moving files`,null);
+                                //return;
+                            }
+                        });*/
                     }
-                });*/
-            }
+                }
+    
+                });
+
         }
         
         callback(null,order_pushed); 
