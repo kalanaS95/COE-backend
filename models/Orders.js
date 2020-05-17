@@ -366,7 +366,7 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
             const file_names = Object.keys(files);
             const DIR_path = __dirname+"/../orders/"+order_pushed._id;
             //lets make a directory under orders with order ID
-            fs.mkdir(DIR_path, (err)=>{
+            await fs.mkdir(DIR_path, (err)=>{
                 if(err)
                     callback(`Internel Server Error Occured while uploading documents`,null);
                     //also remove the created record in order collection
@@ -376,7 +376,8 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
             //now lets move all the uploaded files to the newly created directory
             for(var x=0;x<file_names.length;x++)
             {
-                files[file_names[x]].mv(DIR_path+"/"+files[file_names[x]].name,(err)=>{
+                console.log(file_names[x]);
+                await files[file_names[x]].mv(DIR_path+"/"+files[file_names[x]].name,(err)=>{
                     if(err)
                     {
                         callback(`Error occured while moving files`,null);
