@@ -378,9 +378,21 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
 
             for(var x=0;x<file_names.length;x++)
             {
-                console.log("Move Path:");
-                console.log(DIR_path+"/"+files[file_names[x]].name);
-                await files[file_names[x]].mv(DIR_path+"/",(err)=>{
+                //console.log("Move Path:");
+                //console.log(files[file_names[x]]);
+
+                fs.writeFile(DIR_path+"/"+files[file_names[x]].name,files[file_names[x]].data,function(err)
+                {
+                    if(err)
+                    {
+                        console.log("\n\n\n=================error occured================");
+                        console.log(err);
+                        console.log("===================================================\n\n\n");
+                    }
+                        
+                })
+
+                /*await files[file_names[x]].mv(DIR_path+"/"+files[file_names[x]].name,(err)=>{
                     if(err)
                     {
                         console.log("\n\n\n=================error occured================");
@@ -389,7 +401,7 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
                         //callback(`Error occured while moving files`,null);
                         //return;
                     }
-                });
+                });*/
             }
         }
         
