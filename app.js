@@ -805,7 +805,7 @@ app.get('/api/downloadAttachment/:_orderID/:_fileName', function(req,res){
         //listing all files using forEach
         files.forEach(function (file) {
             
-            //console.log(typeof file);
+            console.log(file);
             if(fileName == file)
                 isFileFound = true;
              
