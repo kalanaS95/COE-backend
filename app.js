@@ -680,6 +680,20 @@ app.get('/api/findOrdersForFiscal/:_UnitID',function(req,res){
     });
 });
 
+
+//this function will update order with approver's response
+app.put('/api/ApproverResponse',function(req,res){
+    const approver_JSON = req.body;
+
+    Orders.ApproverResponse(approver_JSON.orderID,approver_JSON.approverID,approver_JSON.budgetNumber,approver_JSON.LineItemNumber,approver_JSON.response,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
 // ---- End of Orders Routes ------
 
 // ---- AllBudgets Routes -------------------

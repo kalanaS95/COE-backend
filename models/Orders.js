@@ -648,6 +648,137 @@ module.exports.findOrdersForFiscal = async function (Unit_ID,callback)
 }
 
 
+module.exports.ApproverResponse = async function(orderID, approverID, budgetNumber, LineItemNumber,response,callback)
+{
+    try{
+       const info =  await Order.findOneAndUpdate({"_id":orderID, "AwaitingResponses":approverID, "ApprovalResponses.BudgetNumber":budgetNumber, "ApprovalResponses.lineItemID": LineItemNumber}, 
+        {'$set': 
+        {'ApprovalResponses.$[approvalResponseObj].approverResponses.$[approverResponseObj].response':response}},
+        {"arrayFilters":[{"approvalResponseObj.BudgetNumber":budgetNumber, "approvalResponseObj.lineItemID":LineItemNumber},{"approverResponseObj.approverID_ref":approverID}],new: true});
+
+        if(info == null)
+        {
+            callback("No Order exists, according to given data", null);
+            return;
+        }
+
+        //from the updated results lets only get the object that has been updated (i.e budget and line item obj)
+        var updated_subDoc= null;
+        for(var x=0;x<info.ApprovalResponses.length;x++)
+            if(info.ApprovalResponses[x].lineItemID == LineItemNumber && info.ApprovalResponses[x].BudgetNumber == budgetNumber)
+                updated_subDoc = info.ApprovalResponses[x];
+        
+        
+        var ifApproverID_Contains = false;
+        for(var x=0;x<updated_subDoc.approverResponses.length;x++)
+            if(updated_subDoc.approverResponses[x].approverID_ref == approverID)
+            {
+                ifApproverID_Contains = true;
+                break;
+            }
+                
+        if(ifApproverID_Contains == false)
+        {
+            callback("Invalid Information", null);
+            return;
+        }
+        //keep track if an record is updated
+        var isUpdated = false;
+        
+        var final_reposnse_for_the_budget = null;
+        //now lets calculate the final results for the budget number
+        //case 1: where there's only one approver in the approval logic - in this case that approvers decision is the final decision
+        if(updated_subDoc.approverResponses.length == 1)
+        {
+            if(updated_subDoc.approverResponses[0].response == true)
+                final_reposnse_for_the_budget = true;
+            else if(updated_subDoc.approverResponses[0].response == false)
+                final_reposnse_for_the_budget = false;
+            else if(updated_subDoc.approverResponses[0].response == null)
+                final_reposnse_for_the_budget = null;
+
+            isUpdated = true;          
+
+        }else //case 2: where we have more than one approver. We need to walk through all the objects and read approver responses and decide final result
+        {
+            //this will keep track of if the approval logic consists of AND logic or OR logic
+            var isAndLogic = false;
+            if(updated_subDoc.approvalLogic.includes("&&"))
+                isAndLogic = true;
+            else
+                isAndLogic = false;
+
+            //this array will keep track of everyones approval responses
+            var approval_responses = [];
+
+            for(var x=0;x<updated_subDoc.approverResponses.length;x++)
+                approval_responses.push(updated_subDoc.approverResponses[x].response);
+
+            //console.log(isAndLogic);
+            //console.log(approval_responses);
+
+            //now lets calculate the final results
+            //first check if its a AND logic or a OR logic
+            if(isAndLogic)
+            {
+                //In this case if we have at at least one awaiting response, we cannot decide the final result
+                if(approval_responses.includes(null))
+                    final_reposnse_for_the_budget = null;
+                else if (approval_responses.includes(false)) //if at least one false exists, this means according to AND logics the final answer should be false
+                    final_reposnse_for_the_budget = false;
+                else //represents a case, where everyone approved (i.e. all the elements in the array is true)
+                    final_reposnse_for_the_budget = true;
+
+                isUpdated = true;  
+            }else
+            {
+                //console.log(approval_responses.includes(null) == false && approval_responses.includes(false));
+                //in this case (OR logic case), if we have at least one true that means the final result should be true
+                if(approval_responses.includes(true))
+                    final_reposnse_for_the_budget = true;
+                else if(approval_responses.includes(null) == false && approval_responses.includes(false)) //case where all rejected (i.e. array only contains false)
+                    final_reposnse_for_the_budget = false;
+                else // this case represents where array only contains null, i.e. no one responded yet
+                    final_reposnse_for_the_budget = null; 
+                    
+                isUpdated = true;  
+            }
+            
+        }
+
+
+        if(isUpdated)
+        {
+            //updating final result in the selected record
+            await Order.findOneAndUpdate({"_id":orderID, "AwaitingResponses":approverID, "ApprovalResponses.BudgetNumber":budgetNumber, "ApprovalResponses.lineItemID": LineItemNumber}, 
+            {'$set': 
+            {'ApprovalResponses.$[approvalResponseObj].finalResult':final_reposnse_for_the_budget}},
+            {"arrayFilters":[{"approvalResponseObj.BudgetNumber":budgetNumber, "approvalResponseObj.lineItemID":LineItemNumber}],new: true});
+
+            //finally pull out the userID from the awaitResponse array, since $pull removes all the duplicates, we need create a array which removes the one we need. then apply it to awaitingResponses using $set
+            var onlyRemovedOne = false;
+            var toSet = [];
+            for(var x=0;x<info.AwaitingResponses.length;x++)
+                if(info.AwaitingResponses[x].toString() == approverID && onlyRemovedOne == false)
+                    onlyRemovedOne = true;
+                else
+                    toSet.push(info.AwaitingResponses[x]);
+            
+    
+            await Order.findOneAndUpdate({"_id":orderID, "AwaitingResponses":approverID, "ApprovalResponses.BudgetNumber":budgetNumber, "ApprovalResponses.lineItemID": LineItemNumber}, 
+            {'$set': 
+            {'AwaitingResponses':toSet}},{new: true},callback);     
+  
+        }
+
+
+    }catch(err){
+        console.log(err);
+        callback(err, null);
+        return;
+    }
+
+}
 // ------------------- End of API Functions ------------------------------------------------------------------
 
 
