@@ -280,7 +280,6 @@ function construct_a_approval_logic_for_the_order_and_approver_response_part(app
         //this represents a case, where the order was submitted by the PI of the subunit
         if(approvers[x].PI && approvers[x].ID == submitterID)
         {
-            
             //in this case we dont need any approval from other approvers. Just PI in the approval logic and his reponse should be yes
             result = [{"approverID_ref":approvers[x].ID, "response":true}]
             new_approver_logic = approvers[x].ID;
@@ -483,15 +482,19 @@ module.exports.updateOrderStatus = async function(orderID,Order_JSON,callback){
 //this function will update chat info given Order ID
 module.exports.updateChatInfo = async function(orderID,Order_JSON,callback){
 
+    const results = await Order.check_Order_exists_byID(orderID);
     //check order exists in the collection
-    if(await Order.check_Order_exists_byID(orderID) == null)
+    if( results == null)
     {
         callback("Invalid Order ID",null);
         return;
     }
 
+    var current_info = results.ChatInfo + "<br>" + Order_JSON.ChatInfo;
+
+
     //if found then update with the information
-    Order.findOneAndUpdate({_id:orderID},{ChatInfo:Order_JSON.ChatInfo},{new: true},callback);
+    Order.findOneAndUpdate({_id:orderID},{ChatInfo:current_info, lastModified:Date.now()},{new: true},callback);
 
 }
 
