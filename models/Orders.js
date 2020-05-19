@@ -326,6 +326,22 @@ function construct_approval_Info_JSON_Object(approvalLogicString, approvalRespon
 
 // ------------------- API Functions ------------------------------------------------------------------------
 
+
+module.exports.getOrderInformation = async function(OrderID, callback)
+{
+    const results = await Order.check_Order_exists_byID(OrderID);
+
+    if(results == null)
+    {
+        callback(`Order ID: ${OrderID} is invalid`,null);
+        return;
+    }else
+        callback(null,results);
+
+    
+}
+
+
 /*this function will add a new order to the Order collection also make a directory with the name of the 
 Order_ID and save all the uploaded files and files uploaded in the Chat section of the order
 */

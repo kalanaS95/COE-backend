@@ -535,6 +535,20 @@ app.post('/api/uploadOrder/:_type/:_ID',function(req,res){
     });
 });
 
+//this API route will send Order information given order ID
+app.get('/api/getOrderInformation/:_OrderID',function(req,res){
+
+    var OrderID = req.params._OrderID;
+
+    Orders.getOrderInformation(OrderID,function(err,order){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":order});
+        }
+    });
+});
+
 //this API route upload files to a given order given Order ID
 app.post('/api/uploadFiles/:_orderID',function(req,res){
     const Order_ID = req.params._orderID;
