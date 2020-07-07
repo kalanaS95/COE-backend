@@ -59,6 +59,21 @@ app.post('/api/users',function(req,res){
     });
 });
 
+
+app.post('/api/users/updateAddress/:_id',function(req,res){
+    console.log("called");
+    var JSONAddress = req.body;
+    var userID= req.params._id;
+
+    Users.updateAddress(JSONAddress,userID,function(err,order){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":order});
+        }
+    });
+});
+
 //Route to update Users information in the Collection
 app.put('/api/users/:_email/:_id',function(req,res){
     var User_JSON = req.body;
@@ -127,6 +142,7 @@ app.post('/api/uploadProfilePic',function(req,res){
         }
     });
 });
+
 
 
 // ---- End of User Routes ------

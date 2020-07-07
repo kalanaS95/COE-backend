@@ -23,6 +23,30 @@ var userSchema = mongoose.Schema({
     verified_user: {
         type: Boolean,
         default: false
+    },
+    address:{
+        type:{
+            address: 
+            {
+                type:String,
+                required: true
+            },
+            apartment:{
+                type:String
+            },
+            city:{
+                type:String,
+                required: true
+            },
+            state:{
+                type:String,
+                required: true
+            },
+            zipCode:{
+                required:String,
+                required:true
+            }
+        }
     }
 
 });
@@ -43,7 +67,8 @@ function validate_and_copy_passedJSON(JSON_Obj, callback) {
         "email": null,
         "UWID": null,
         "profileImage_URL": null,
-        "verified_user": false
+        "verified_user": false,
+        "address": null
 
     };
 
@@ -187,6 +212,22 @@ module.exports.uploadImage = function(imageData,callback)
     callback('TEST',null);
 }
 
+
+module.exports.updateAddress = function(addressInfoJSON,userID,callback)
+{
+    User.findOneAndUpdate({"_id":userID},{"address":addressInfoJSON},{new: true},callback);
+
+}
+
+module.exports.getUserAddress = async function(userID,callback)
+{
+    try{
+        userInfo = User.User_exsists_inCollection_byID(userID);
+        callback(null,{"address":userInfo.address});
+    }catch{
+        callback("Internal server error has occurred while processing the request",null);
+    }
+}
 
 
 

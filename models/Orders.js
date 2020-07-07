@@ -31,8 +31,23 @@ var orderScheme = mongoose.Schema({
         required:true
     },
     ChatInfo:{
-        type:String,
-        default: ""
+        type:[
+            {
+                userName:{
+                    type:String,
+                    required: true
+                },
+                comment:{
+                    type:String,
+                    required: true
+                },
+                timeStamp:{
+                    type:Date,
+                    default:Date.now
+                }
+            }
+        ],
+        default: []
     },
     assignedTo:{
         type:mongoose.Types.ObjectId,
@@ -78,7 +93,7 @@ function validate_and_copy_passedJSON(JSON_Obj,approvalResponse ,callback) {
         "OrderType": null,
         "OrderInfo": null,
         "OrderStatus": null,
-        "ChatInfo": null,
+        "ChatInfo": [],
         "assignedTo":null,
         "AribaReference": null,
         "ApprovalResponses":approvalResponse.Approval_reponses,
@@ -112,10 +127,10 @@ function validate_and_copy_passedJSON(JSON_Obj,approvalResponse ,callback) {
     else
         Order_JSON_Obj.OrderStatus = "Awaiting Approval";
          
-    if (typeof JSON_Obj.ChatInfo != 'string')
+    /*if (typeof JSON_Obj.ChatInfo != 'string')
         err_list.push("ChatInfo is not String type")
     else
-        Order_JSON_Obj.ChatInfo = JSON_Obj.ChatInfo;
+        Order_JSON_Obj.ChatInfo = JSON_Obj.ChatInfo;*/
 
         
     if (typeof JSON_Obj.assignedTo != 'string' && JSON_Obj.assignedTo != null)
@@ -506,11 +521,24 @@ module.exports.updateChatInfo = async function(orderID,Order_JSON,callback){
         return;
     }
 
-    var current_info = results.ChatInfo + "<br>" + Order_JSON.ChatInfo;
+    const userInfo = await Users_ref.User_exsists_inCollection_byID(Order_JSON.userName);
+
+    if(userInfo == null)
+    {
+        callback("Invalid User ID",null);
+        return;
+    }
+
+    var JSON_to_push = {
+        "userName":userInfo.Name,
+        "comment":Order_JSON.comment,
+        "timeStamp":Date.now()
+    }
+    //var current_info = results.ChatInfo + "<br>" + Order_JSON.ChatInfo;
 
 
     //if found then update with the information
-    Order.findOneAndUpdate({_id:orderID},{ChatInfo:current_info, lastModified:Date.now()},{new: true},callback);
+    Order.findOneAndUpdate({_id:orderID},{$push:{ChatInfo:JSON_to_push}, lastModified:Date.now()},{new: true},callback);
 
 }
 
