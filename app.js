@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 var mongose = require('mongoose');
 var fileUpload  = require('express-fileupload');
 
+
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
@@ -20,16 +21,39 @@ Units = require('./models/Units');
 SubUnits = require('./models/SubUnits');
 Orders = require('./models/Orders');
 AllBudgets = require('./models/AllBudgets');
+user_Notifications = require('./models/notifications');
+emailService = require('./models/emailService');
 
 var fs = require('fs');
+const { isObject } = require('util');
+//const notifications = require('./models/notifications');
 
 //connect to mongoose --test 123
 var mongoPath = 'mongodb+srv://developers:123HelloWorld@cluster0-e0mig.azure.mongodb.net/test?retryWrites=true&w=majority';
 mongose.connect(mongoPath, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true,  useFindAndModify: false });
 var db = mongose.connection;
 
-app.listen(process.env.PORT|| 3000);
+var server = require('http').createServer(app);
+var io = require('socket.io')(server); 
+
+
+//app.listen(process.env.PORT|| 3000);
+server.listen(process.env.PORT||3000);
 console.log("Backend Running on Port 3000");
+
+var currentClient = null;
+//change this to a stack, so we can keep multiple users here
+var clinet_userID = null;
+io.on('connection', function(client){
+    console.log('Client connected.....');
+
+    currentClient = client;
+    client.on('join',function(data){
+        clinet_userID = data;
+        console.log(data);
+        //client.emit('message', "Hello from the other side !");
+    });
+});
 
 // ------ API Routes -------------
 
@@ -37,6 +61,19 @@ console.log("Backend Running on Port 3000");
 //------------------------get request for landing page-------------------------------------------
 app.get('/',function(req,res){
     res.send('Please use /api/ to access the API');
+});
+
+app.post('/api/testNotification',function(req,res){
+
+    var JSON_info = req.body;
+
+    currentClient.emit('message', {"Type":JSON_info.Type, "Title":JSON_info.Title, "Message":JSON_info.Message,"timeStamp":new Date().toISOString()});
+    res.send('Notification triggered');
+    user_Notifications.addNotification(JSON_info);
+    emailService.initialize_transporter('gmail','kalana.sahabandu@gmail.com','_1Divxplayer');
+    emailService.Configure_mail_to('kalana.sahabandu@gmail.com','ksahaban@uw.edu',JSON_info.Title, JSON_info.Message);
+    emailService.SendMail();
+    
 });
 
 
@@ -813,7 +850,21 @@ app.put('/api/allBudgets/uploadExcelFile/:_UnitID',function(req,res){
 
 // ---- End of AllBudgets Routes -------------
 
+//----------------- Notification ROUTES ---------------------------------------------------------------
+app.get('/api/getNotifications/:_userID', function(req,res){
 
+    const userID = req.params._userID;
+
+    user_Notifications.getNotifications(userID,function(err,notifications){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":notifications});
+        }
+    });
+
+});
+//----------------- END OF Notification ROUTES --------------------------------------------------------
 
 //----------------- FILE DOWNLOAD ROUTES --------------------------------------------------------
 app.get('/api/downloadAttachment/:_orderID/:_fileName', function(req,res){

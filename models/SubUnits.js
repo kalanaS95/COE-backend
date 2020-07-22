@@ -191,7 +191,7 @@ async function Subunit_exsits_inColleciton_byName(SubUnit_name)
 }
 
 //this function will check whether if given SubUnit exists in the collection by its ID
-async function Subunit_exsits_inColleciton_byID(SubUnitID)
+module.exports.Subunit_exsits_inColleciton_byID = async function (SubUnitID)
 {
     try{
         return (await SubUnit.findById(SubUnitID));
@@ -411,7 +411,7 @@ module.exports.addSubUnits = async function(Subunit_JSON,callback){
 module.exports.addSubmitters = async function(submitters_JSON,subunitID,callback){
 
     //get document from the subunit ID
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
     const submitters_IDs_array = submitters_JSON.Submitters_IDs;
 
     if(fetched_SubUnit == null)
@@ -441,7 +441,7 @@ module.exports.addSubmitters = async function(submitters_JSON,subunitID,callback
 module.exports.removeSubmitter = async function(submitters_JSON,subunitID,callback){
 
     //get document from the subunit ID
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
     const submitters_IDs_array = submitters_JSON.Submitters_IDs;
 
     if(fetched_SubUnit == null)
@@ -486,7 +486,7 @@ module.exports.removeSubmitter = async function(submitters_JSON,subunitID,callba
 module.exports.addApprover = async function(subunitID,budgetID,approver_JSON,callback){
 
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
 
     if(fetched_SubUnit == null)
     {
@@ -541,7 +541,7 @@ module.exports.addApprover = async function(subunitID,budgetID,approver_JSON,cal
 module.exports.removeApprover = async function(subunitID,budgetID, approverID,callback)
 {
      //first check if the subunit ID exists in the collection
-     const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+     const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
 
      if(fetched_SubUnit == null)
      {
@@ -564,7 +564,7 @@ module.exports.removeApprover = async function(subunitID,budgetID, approverID,ca
 module.exports.updateApprover = async function(subunitID,budgetID, approver_JSON,callback)
 {
      //first check if the subunit ID exists in the collection
-     const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+     const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
 
      if(fetched_SubUnit == null)
      {
@@ -598,7 +598,7 @@ module.exports.addBudget = async function(subunitID,budget_JSON,callback){
     //this will keep track of all the budget numbers sent by the user
     var budgetNumbers = [];
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
 
     if(fetched_SubUnit == null)
     {
@@ -639,7 +639,7 @@ module.exports.addBudget = async function(subunitID,budget_JSON,callback){
 //this function will remove a budget from a subunit, given subUnit ID and Budget Number
 module.exports.removeBudget = async function(subunitID,budgetNumber,callback){
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
 
     if(fetched_SubUnit == null)
     {
@@ -668,7 +668,7 @@ module.exports.removeBudget = async function(subunitID,budgetNumber,callback){
 module.exports.updateApprovalLogic = async function(subunitID, budgetNumber,approvalLogicString,callback)
 {
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
 
     if(fetched_SubUnit == null)
     {
@@ -696,7 +696,7 @@ module.exports.updateApprovalLogic = async function(subunitID, budgetNumber,appr
 //this function will return all the budgets given subUnit ID
 module.exports.getSubUnitDetails = async function(subunitID,callback){
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subunitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subunitID);
 
     if(fetched_SubUnit == null)
     {
@@ -744,7 +744,7 @@ module.exports.getSubmitterInfo = async function(subUnitID,callback){
     //this will keep all the userInformation
     var userInfo = [];
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subUnitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subUnitID);
 
     if(fetched_SubUnit == null)
     {
@@ -865,7 +865,7 @@ module.exports.getAll_subunits = async function(UnitID,callback){
 module.exports.UpdateSubUnitName = async function(subUnitID,newName,callback)
 {
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subUnitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subUnitID);
 
     if(fetched_SubUnit == null)
     {
@@ -881,7 +881,7 @@ module.exports.UpdateSubUnitName = async function(subUnitID,newName,callback)
 module.exports.removeSubunit = async function(subUnitID,callback)
 {
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subUnitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subUnitID);
 
     if(fetched_SubUnit == null)
     {
@@ -1083,7 +1083,7 @@ module.exports.loginUser = async function(UWID,callback){
 module.exports.getBudgetsUnderSubUnit = async function(subUnitID,callback)
 {
     //first check if the subunit ID exists in the collection
-    const fetched_SubUnit = await Subunit_exsits_inColleciton_byID(subUnitID);
+    const fetched_SubUnit = await SubUnit.Subunit_exsits_inColleciton_byID(subUnitID);
 
     if(fetched_SubUnit == null)
     {

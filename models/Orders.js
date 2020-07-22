@@ -18,6 +18,10 @@ var orderScheme = mongoose.Schema({
         ref:'User',
         required: true
     },
+    userName:{
+        type:String,
+        required: true
+    },
     OrderType:{
         type:String,
         required: true
@@ -53,6 +57,9 @@ var orderScheme = mongoose.Schema({
         type:mongoose.Types.ObjectId,
         ref:'User'
     },
+    assignedTo_name:{
+        type:String
+    },
     submittedOn:{
         type:Date,
         default: Date.now
@@ -72,6 +79,10 @@ var orderScheme = mongoose.Schema({
     },
     Unit_SubUnit_ref:{
         type:String
+    },
+    Unit_SubUnit_Name:{
+        type:String,
+        required: true
     }
 
     
@@ -83,22 +94,25 @@ var Order = module.exports = mongoose.model('Order', orderScheme);
 // ------------------- Helper Functions --------------------------------------------------------------
 
 //This validator function will validate Passed in JSON object contains correct data types
-function validate_and_copy_passedJSON(JSON_Obj,approvalResponse ,callback) {
+async function validate_and_copy_passedJSON(JSON_Obj,approvalResponse,type,callback) {
 
     var err_list = []; //this will keep all the error messages
 
     //Empty template of a user JSON object
     var Order_JSON_Obj = {
         "userID_ref": null,
+        "userName": null,
         "OrderType": null,
         "OrderInfo": null,
         "OrderStatus": null,
         "ChatInfo": [],
         "assignedTo":null,
+        "assignedTo_name": null,
         "AribaReference": null,
         "ApprovalResponses":approvalResponse.Approval_reponses,
         "AwaitingResponses":approvalResponse.awaiting_reposnses,
-        "Unit_SubUnit_ref": approvalResponse.Unit_Subunit_ID
+        "Unit_SubUnit_ref": approvalResponse.Unit_Subunit_ID,
+        "Unit_SubUnit_Name": null
 
     };
 
@@ -137,7 +151,34 @@ function validate_and_copy_passedJSON(JSON_Obj,approvalResponse ,callback) {
         err_list.push("assignedTo is not String type")
     else
         Order_JSON_Obj.assignedTo = JSON_Obj.assignedTo; 
-           
+    
+    //get user name and fill out the field
+    const userInfo = await Users_ref.User_exsists_inCollection_byID(JSON_Obj.userID_ref);    
+    Order_JSON_Obj.userName = userInfo.Name;
+
+    //get assigned to user name and fill out the field
+    if(JSON_Obj.assignedTo != null)
+    {
+        const assignedTo_info = await Users_ref.User_exsists_inCollection_byID(JSON_Obj.assignedTo); 
+        Order_JSON_Obj.assignedTo_name = assignedTo_info.Name;
+    }else
+    {
+        Order_JSON_Obj.assignedTo_name = null;
+    }
+
+    var lowercase_type = type.toLowerCase();
+    //now lets get unit or subunit name
+    if(lowercase_type == 'unit')
+    {
+        const unitInfo = await Unit_ref.Unit_exsists_inCollection_byID(approvalResponse.Unit_Subunit_ID);
+        Order_JSON_Obj.Unit_SubUnit_Name = unitInfo.unitName;
+    }else if(lowercase_type == 'subunit')
+    {
+        const subunitInfo = await SubUnit_ref.Subunit_exsits_inColleciton_byID(approvalResponse.Unit_Subunit_ID);
+        Order_JSON_Obj.Unit_SubUnit_Name = subunitInfo.subUnitName;
+    }
+    
+
     if(err_list.length == 0)
         return Order_JSON_Obj;
     else
@@ -365,7 +406,7 @@ module.exports.addOrder = async function(Order_JSON,files,Sub_OR_UnitID,type,cal
     const approval_responses = await construct_approvalInfo(Order_JSON.OrderType,parsed_OrderInfo.LineItems,type,Sub_OR_UnitID,Order_JSON.userID_ref);
     console.log(approval_responses);
     //first validate the passed in Order information
-    var Order_validated = validate_and_copy_passedJSON(Order_JSON,approval_responses,callback);
+    var Order_validated = await validate_and_copy_passedJSON(Order_JSON,approval_responses,type,callback);
     if(Order_validated == null)
         return;
 
@@ -570,8 +611,9 @@ module.exports.removeOrder = async function(orderID,callback){
 //this function will assign a user to an Order
 module.exports.assignOrder = async function(orderID,UserID,callback){
 
+    const user_info = await Users_ref.validate_UserID(UserID)
     //check userID exists
-    if(await Users_ref.validate_UserID(UserID) == null)
+    if( user_info == null)
     {
         callback("Invalid User ID",null);
         return;
@@ -585,7 +627,7 @@ module.exports.assignOrder = async function(orderID,UserID,callback){
     }
     
     //if found then update with the information
-    Order.findOneAndUpdate({_id:orderID},{assignedTo:UserID},{new: true},callback);
+    Order.findOneAndUpdate({_id:orderID},{assignedTo:UserID,assignedTo_name:user_info.Name},{new: true},callback);
 
 }
 
