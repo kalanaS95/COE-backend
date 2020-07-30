@@ -680,6 +680,19 @@ app.post('/api/assignOrder/:_orderID/:_userID',function(req,res){
     });
 });
 
+//this API route will untake an order. Such that we can assign new fiscal member using above route 
+app.get('/api/untakeOrder/:_orderID',function(req,res){
+    const Order_ID = req.params._orderID;
+
+    Orders.untakeOrder(Order_ID,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
 //this API route will return all the orders tied to a userID
 app.get('/api/getAssignedOrders/:_userID',function(req,res){
     const userID = req.params._userID;

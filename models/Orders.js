@@ -631,6 +631,12 @@ module.exports.assignOrder = async function(orderID,UserID,callback){
 
 }
 
+//this function will untake an order.
+module.exports.untakeOrder = function(orderID,callback)
+{
+    Order.findOneAndUpdate({_id:orderID},{assignedTo:null,assignedTo_name:null},{new: true},callback);
+}
+
 module.exports.getAssignedOrders = async function(userID,callback)
 {
     //check userID exists
