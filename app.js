@@ -655,6 +655,19 @@ app.post('/api/updateChatInfo/:_orderID',function(req,res){
     });
 });
 
+//this API route will update the order history given OrderID
+app.post('/api/updateOrderHistory/:_orderID',function(req,res){
+    const Order_ID = req.params._orderID;
+    const Order_JSON = req.body;
+    Orders.updateOrderHistory(Order_ID,Order_JSON,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
 //this API route will remove the order given orderID
 app.delete('/api/removeOrder/:_orderID',function(req,res){
     const Order_ID = req.params._orderID;

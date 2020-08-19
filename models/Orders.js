@@ -53,6 +53,25 @@ var orderScheme = mongoose.Schema({
         ],
         default: []
     },
+    OrderHistory:{
+        type:[
+            {
+                userName:{
+                    type:String,
+                    required: true
+                },
+                action:{
+                    type:String,
+                    required: true
+                },
+                timeStamp:{
+                    type:Date,
+                    default:Date.now
+                }
+            }
+        ],
+        default: []
+    },
     assignedTo:{
         type:mongoose.Types.ObjectId,
         ref:'User'
@@ -580,6 +599,38 @@ module.exports.updateChatInfo = async function(orderID,Order_JSON,callback){
 
     //if found then update with the information
     Order.findOneAndUpdate({_id:orderID},{$push:{ChatInfo:JSON_to_push}, lastModified:Date.now()},{new: true},callback);
+
+}
+
+//this function will update order history given Order ID
+module.exports.updateOrderHistory = async function(orderID,Order_JSON,callback){
+
+    const results = await Order.check_Order_exists_byID(orderID);
+    //check order exists in the collection
+    if( results == null)
+    {
+        callback("Invalid Order ID",null);
+        return;
+    }
+
+    const userInfo = await Users_ref.User_exsists_inCollection_byID(Order_JSON.userName);
+
+    if(userInfo == null)
+    {
+        callback("Invalid User ID",null);
+        return;
+    }
+
+    var JSON_to_push = {
+        "userName":userInfo.Name,
+        "action":Order_JSON.action,
+        "timeStamp":Date.now()
+    }
+    //var current_info = results.ChatInfo + "<br>" + Order_JSON.ChatInfo;
+
+
+    //if found then update with the information
+    Order.findOneAndUpdate({_id:orderID},{$push:{OrderHistory:JSON_to_push}, lastModified:Date.now()},{new: true},callback);
 
 }
 
