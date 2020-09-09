@@ -616,7 +616,23 @@ app.post('/api/uploadFiles/:_orderID',function(req,res){
     });
 });
 
-//this API route will update the OrderInfo given OrderID
+// this API route will update the order, 
+// including check if need to create new approval chain
+// given OrderID and type (subunit/unit)
+app.post('/api/updateOrder/:_orderID/:_type',function(req,res){
+    var type = req.params._type;
+    const Order_ID = req.params._orderID;
+    const Order_JSON = req.body;
+    Orders.updateOrder(Order_ID,Order_JSON,type,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+// this API route will update the OrderInfo only given OrderID
 app.post('/api/updateOrderInfo/:_orderID',function(req,res){
     const Order_ID = req.params._orderID;
     const Order_JSON = req.body;
@@ -634,6 +650,21 @@ app.post('/api/updateOrderStatus/:_orderID',function(req,res){
     const Order_ID = req.params._orderID;
     const Order_JSON = req.body;
     Orders.updateOrderStatus(Order_ID,Order_JSON,function(err,unit){
+        if(err){
+            res.json({"status":false, "data":err});
+        }else{
+            res.json({"status":true, "data":unit});
+        }
+    });
+});
+
+// this function will update the CREATE_NEW_APPROVAL_CHAIN item given Order ID
+// true means when update the request info it will create a new approval chain
+// otherwise just update the content of order
+app.post('/api/updateApprovalChainController/:_orderID',function(req,res){
+    const Order_ID = req.params._orderID;
+    const Order_JSON = req.body;
+    Orders.updateApprovalChainController(Order_ID,Order_JSON,function(err,unit){
         if(err){
             res.json({"status":false, "data":err});
         }else{

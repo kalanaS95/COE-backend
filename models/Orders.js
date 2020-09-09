@@ -102,8 +102,11 @@ var orderScheme = mongoose.Schema({
     Unit_SubUnit_Name:{
         type:String,
         required: true
+    },
+    Create_New_Approval_Chain: {
+        type:Boolean,
+        default:false
     }
-
     
 
 });
@@ -125,14 +128,15 @@ async function validate_and_copy_passedJSON(JSON_Obj,approvalResponse,type,callb
         "OrderInfo": null,
         "OrderStatus": null,
         "ChatInfo": [],
+        "OrderHistory": [],
         "assignedTo":null,
         "assignedTo_name": null,
         "AribaReference": null,
         "ApprovalResponses":approvalResponse.Approval_reponses,
         "AwaitingResponses":approvalResponse.awaiting_reposnses,
         "Unit_SubUnit_ref": approvalResponse.Unit_Subunit_ID,
-        "Unit_SubUnit_Name": null
-
+        "Unit_SubUnit_Name": null,
+        "Create_New_Approval_Chain": false
     };
 
     if (typeof JSON_Obj.userID_ref != 'string')
@@ -540,6 +544,29 @@ module.exports.uploadFiles = async function(orderID,files,callback){
 
 
 //this function will update order Info given Order ID
+module.exports.updateOrder = async function(orderID,Order_JSON,type,callback){
+
+    //check order exists in the collection
+    if(await Order.check_Order_exists_byID(orderID) == null)
+    {
+        callback("Invalid Order ID",null);
+        return;
+    }
+
+    const order = await Order.findById(orderID);
+    if (order.Create_New_Approval_Chain == true) {
+        const parsed_OrderInfo = JSON.parse(Order_JSON.OrderInfo);
+        const approvalResponse = await construct_approvalInfo(order.OrderType,parsed_OrderInfo.LineItems,type,order.Unit_SubUnit_ref,order.userID_ref);
+        Order.findOneAndUpdate({_id:orderID},{ApprovalResponses:approvalResponse.Approval_reponses,
+                                              AwaitingResponses:approvalResponse.awaiting_reposnses,
+                                              Create_New_Approval_Chain:false,
+                                              OrderInfo:Order_JSON.OrderInfo,lastModified:Date.now()},{new:true},callback);
+    } else {
+        Order.findOneAndUpdate({_id:orderID},{OrderInfo:Order_JSON.OrderInfo,lastModified:Date.now()},{new: true},callback);
+    }
+}
+
+//this function will update order Info given Order ID
 module.exports.updateOrderInfo = async function(orderID,Order_JSON,callback){
 
     //check order exists in the collection
@@ -567,6 +594,23 @@ module.exports.updateOrderStatus = async function(orderID,Order_JSON,callback){
 
     //if found then update with the information
     Order.findOneAndUpdate({_id:orderID},{OrderStatus:Order_JSON.OrderStatus,lastModified:Date.now()},{new: true},callback);
+
+}
+
+// this function will update the CREATE_NEW_APPROVAL_CHAIN item given Order ID
+// true means when update the request info it will create a new approval chain
+// otherwise just update the content of order
+module.exports.updateApprovalChainController = async function(orderID,Order_JSON,callback){
+
+    //check order exists in the collection
+    if(await Order.check_Order_exists_byID(orderID) == null)
+    {
+        callback("Invalid Order ID",null);
+        return;
+    }
+
+    //if found then update with the information
+    Order.findOneAndUpdate({_id:orderID},{Create_New_Approval_Chain:Order_JSON.data,lastModified:Date.now()},{new: true},callback);
 
 }
 
@@ -809,7 +853,7 @@ module.exports.findOrdersForFiscal = async function (Unit_ID,callback)
 module.exports.ApproverResponse = async function(orderID, approverID, budgetNumber, LineItemNumber,response,callback)
 {
     try{
-       const info =  await Order.findOneAndUpdate({"_id":orderID, "AwaitingResponses":approverID, "ApprovalResponses.BudgetNumber":budgetNumber, "ApprovalResponses.lineItemID": LineItemNumber}, 
+        const info =  await Order.findOneAndUpdate({"_id":orderID, "AwaitingResponses":approverID, "ApprovalResponses.BudgetNumber":budgetNumber, "ApprovalResponses.lineItemID": LineItemNumber}, 
         {'$set': 
         {'ApprovalResponses.$[approvalResponseObj].approverResponses.$[approverResponseObj].response':response}},
         {"arrayFilters":[{"approvalResponseObj.BudgetNumber":budgetNumber, "approvalResponseObj.lineItemID":LineItemNumber},{"approverResponseObj.approverID_ref":approverID}],new: true});
