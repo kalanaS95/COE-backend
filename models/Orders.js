@@ -560,9 +560,11 @@ module.exports.updateOrder = async function(orderID,Order_JSON,type,callback){
         Order.findOneAndUpdate({_id:orderID},{ApprovalResponses:approvalResponse.Approval_reponses,
                                               AwaitingResponses:approvalResponse.awaiting_reposnses,
                                               Create_New_Approval_Chain:false,
-                                              OrderInfo:Order_JSON.OrderInfo,lastModified:Date.now()},{new:true},callback);
+                                              OrderInfo:Order_JSON.OrderInfo,
+                                              OrderStatus:"Approved",
+                                              lastModified:Date.now()},{new:true},callback);
     } else {
-        Order.findOneAndUpdate({_id:orderID},{OrderInfo:Order_JSON.OrderInfo,lastModified:Date.now()},{new: true},callback);
+        Order.findOneAndUpdate({_id:orderID},{OrderInfo:Order_JSON.OrderInfo,OrderStatus:"Awaiting Approval",lastModified:Date.now()},{new: true},callback);
     }
 }
 
