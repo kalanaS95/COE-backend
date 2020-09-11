@@ -12,12 +12,13 @@
     "express-fileupload": "*",
     "fs": "*",
     "mongoose": "*",
-    "rimraf": "*",
     "mongoose-currency": "*",
-    "read-excel-file": "*",
-    "socket.io": "*",
     "nodemailer": "*",
-    "package.json": "^2.0.1"
+    "package.json": "^2.0.1",
+    "passport-uwshib": "^0.1.2",
+    "read-excel-file": "*",
+    "rimraf": "*",
+    "socket.io": "*"
   },
   "author": "Kalana Sahabandu",
   "license": "ISC"
